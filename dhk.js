@@ -1,5 +1,3 @@
-
-// 방법 1 : 공과 선수들의 데이터를 분리해서 사용
 var lotation = function(x,y,theta){ // 선수들의 위치정보 + 각도를 바탕으로 표현해야할 폴리곤의 좌표값을 반환
 	var r = 10; // 선수들을 표현할 크기
 	return (x+2*r*Math.cos(theta)) + "," + (y+2*r*Math.sin(theta)) + " "+ (x+r*Math.cos(theta+90)) + "," + (y+r*Math.sin(theta+90)) + " "+ (x+r*Math.cos(theta-90)) + "," + (y+r*Math.sin(theta-90));
@@ -8,171 +6,132 @@ var lotation = function(x,y,theta){ // 선수들의 위치정보 + 각도를 바
 var theta = function(vx, vy){ // 두 방향의 속도를 받아서 라디안값으로 반환
 	return Math.atan(vy/vx);
 };
-
-function goalkeeper_lotation(x,y)
-{
-	d=5; // 골키퍼 두께
-	l=13; // 골키퍼 길이
-	return  (x-d) + "," + (y+l) + " " +
-			(x+d) + "," + (y+l) + " " +
-			(x+d) + "," + (y-l) + " " +
-			(x-d) + "," + (y-l) + " ";
-}
-
 //1. 초기 데이터 셋
-var player_data = [];
-var ball_data = [];
-var goalkeeper_data = [];
+var data = [];
 
 //test data
-for(var i = 0; i < 1500; i++){
-	player_data.push([]);
-	goalkeeper_data.push([]);
+for(var i = 0; i < 1000; i++){
+	data.push([]);
+	
 	for(var j =0; j< 15; j++){
-		player_data[i].push(
+		data[i].push(
 			{
-			x : Math.random() * 700,
-			y : Math.random() * 700,
-			vx : Math.random() - 0.5,
-			vy : Math.random() - 0.5
-			}
-		);
-	}
-	for(var j = 0; j<2;j++){
-		goalkeeper_data[i].push(
-			{
-			x : Math.random() * 700,
-			y : Math.random() * 700,
-			vx : Math.random() - 0.5,
-			vy : Math.random() - 0.5
-			}
-		); 
+				x : Math.random()*700,
+				y : Math.random()*700,
+				vx : Math.random()-0.5,
+				vy : Math.random()-0.5
+			});
 	}
 	
-	ball_data.push([{
-		x : Math.random() * 700,
-		y : Math.random() * 700
-	}]); 
-
-	
-}
-
-
-var svg = d3.select("body").append("svg").attr("width", 700).attr("height", 700);
-
-var ball  =  svg.selectAll("circle")
-				.data(ball_data[0])
-				.enter()
-				.append("circle")
-				.attr("cx",function(d){return d.x})
-				.attr("cy",function(d){return d.y})
-				.attr("r",10)
-				.attr("fill","green");
-				
-				
-var player = svg.selectAll("polygon")
-				.data(player_data[0])
-				.enter()
-				.append("polygon")
-				.attr("points", function(d){
-					return lotation(d.x, d.y, theta(d.vx, d.vy));
-				})
-				.attr("fill", function(d,i){ // 선수들의 팀에 따라 색상을 다르게 지정하는 부분
-					if(i<7) return "blue";
-					else if(i==7) return "yellow";
-					else return "red";
-				});
-				
-var goalkeeper = svg.selectAll("rect")
-					.data(goalkeeper_data[0])
-					.enter()
-					.append("rect")
-					.attr("width", 10)
-					.attr("height", 25)
-					.attr("x", function(d){return d.x-5;})
-					.attr("y", function(d){return d.y-12.5;})
-					.attr("fill", function(d,i){
-						if(i==0) return "blue";
-						else return "red";
-					});
-
-function move_player(selection, time) {
-	
-	selection
-	.data(player_data[time])
-	.transition()
-	.duration(1000)
-	.ease("linear")
-	.attr("points", function(d){
-		return lotation(d.x, d.y, theta(d.vx, d.vy));
+	data[i].push(
+		{
+			x : Math.random()*700,
+			y : Math.random()*700,
 	});
 }
 
-function move_goalkeeper(selection, time){
-	
-	selection
-	.data(goalkeeper_data[time])
-	.transition()
-	.duration(1000)
-	.ease("linear")
-	.attr("x", function(d){return d.x})
-	.attr("y", function(d){return d.y});
-	
-}
+var svg = d3.select("body").select("svg").attr("width", 1000).attr("height", 1000);
 
-function move_ball(selection, time){
-	
+var ds = svg.selectAll(".test")
+			.data(data[0])
+			.attr("points", function(d) {
+				return lotation(d.x, d.y, theta(d.vx, d.vy));
+			})
+			.attr("x", function(d){return d.x;})
+			.attr("y", function(d){return d.y;})
+			.attr("width", 10)
+			.attr("height", 25)
+			.attr("cx", function(d){return d.x;})
+			.attr("cy", function(d){return d.y;})
+			.attr("r",10)
+			.attr("fill",function(d,i){
+				if(i<7) return "blue";
+				else if(i==7) return "yellow";
+				else if(i<15) return "red";
+				else return "green";
+			});
+
+function move(selection, time) {
 	selection
-	.data(ball_data[time])
+	.data(data[time])
 	.transition()
 	.duration(1000)
 	.ease("linear")
-	.attr("cx", function(d){return d.x})
-    .attr("cy", function(d){return d.y});
+	.attr("points", function(d) {
+		return lotation(d.x, d.y, theta(d.vx, d.vy));
+	})
+	.attr("x", function(d){return d.x;})
+	.attr("y", function(d){return d.y;})
+	.attr("cx", function(d){return d.x;})
+	.attr("cy", function(d){return d.y;});
 }
 
 var moving = true;
 var timerID;
-d3.select("body").on("click", function() {
+var timer_request;
 
+d3.select("body").on("click", function() {
+	
+	clearInterval(timer_request);
+	
 	if (moving) {
 		var count = prompt('time : ');
+		timerID = setInterval(request(count), 500);
 		moving = false;
-		timerID = setInterval(function() {
-			ball.call(move_ball, ++count);
-			player.call(move_player, count);
-			goalkeeper.call(move_goalkeeper, count);
+		timer_request = setInterval(function() {
+			ds.call(move, ++count);
 		}, 1000);
 	} else {
-		alert("stop!")
+		//ealert("stop!");
 		clearInterval(timerID);
 		moving = true;
 	}
-
 });
+
+function request(time){ // 서버로부터 데이터를 받아오는 메소드 
+	
+	
+}
+
 
 /*
- var moving = false;
+$.get("kdb.snu.ac.kr:4730/data?start_time=107530&end_time=107560", function(data){
+	alert("!");
+}).done(function() {
+    alert( "second success" );
+  })
+  .fail(function(jqxhr, textStatus, error) {
+    alert( textStatus);
+    console.log( error);
+  })
+  .always(function() {
+    alert( "finished" );
+  });
 
-d3.select("body").on("click", function(){
-	if(moving){
-		clearInterval(timeid);
-	}
-	
-	else{
-		timeid = setInterval(move(1),1000);
-	}
-	
-	
+$.each([5,6,7,8,9],function(i,d){
+	alert(i + " : "+d);
 });
 
-function move(){
-	ball.call(move_ball,time);
-	player.call(move_player,time);
-	goalkeeper.call(move_goalkeeper,time);
-}
-*/
+var data = [ 
+ {"Id": 10004, "PageName": "club"}, 
+ {"Id": 10040, "PageName": "qaz"}, 
+ {"Id": 10059, "PageName": "jjjjjjj"}
+];
 
+$.get("http://query.yahooapis.com/v1/public/yql?q=select%20%2a%20from%20yahoo.finance.quotes%20WHERE%20symbol%3D%27WRC%27&format=json&diagnostics=true&env=store://datatables.org/alltableswithkeys&callback", function(data) {
+    alert(""+data);
+});
+
+$.ajax({
+    url : "kdb.snu.ac.kr:4730/data?start_time=107530&end_time=107560",
+    data : "id=user",
+    dataType : "jsonp",
+    jsonp : "callback",
+    success: function() {
+        alert("!");
+    }
+});
+*/
 /*
 function lotation(x,y,theta){ // 선수들의 위치정보 + 각도를 바탕으로 표현해야할 폴리곤의 좌표값을 반환
 	var r = 10; // 선수들을 표현할 크기
