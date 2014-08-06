@@ -9,7 +9,7 @@ var slider = $("#slider").slider({
 });
 
 
-var scalex = d3.scale.linear().domain([-52490,52490]).range([0,$("#slider").width()*0.9]);
+var scalex = d3.scale.linear().domain([-52490,52490]).range([0,$("#slider").width()*0.7]);
 var scaley = d3.scale.linear().domain([-33960,33960]).range([0,$("#slider").width()*0.729*0.7]);
 var scaletimeline =  d3.scale.linear().domain([0,1000]).range([0,$("#slider").width()]); // 정의역 : 0~전체게임시간
 var data = [];
@@ -23,11 +23,15 @@ var ds;
 
 var lotation = function(x,y,theta){ // 선수들의 위치정보 + 각도를 바탕으로 표현해야할 폴리곤의 좌표값을 반환
 	var r = 10; // 선수들을 표현할 크기
+	if(x==null||y==null||theta==null) return false;
 	return (x+2*r*Math.cos(theta)) + "," + (y+2*r*Math.sin(theta)) + " "+ (x+r*Math.cos(theta+90)) + "," + (y+r*Math.sin(theta+90)) + " "+ (x+r*Math.cos(theta-90)) + "," + (y+r*Math.sin(theta-90));
 };
 
 var theta = function(vx, vy){ // 두 방향의 속도를 받아서 라디안값으로 반환
-	return Math.atan(vy/vx);
+	if(vx<0&&vy<0) return Math.atan(vy/vx)+Math.PI;
+	else if(vx>0&&vy<0) return Math.atan(vy/vx)+Math.PI/2;
+	else if(vx<0&&vy>0) return Math.atan(vy/vx)+Math.PI*3/2;
+	else return Math.atan(vy/vx);
 };
 function start(count) {
 	
@@ -80,8 +84,8 @@ $.get("http://147.47.206.13/data?start_time=107530&end_time=108530",function(d){
 				data[i].push({
 					y : d[i][j].PX,
 					x : d[i][j].PY,
-					vy : d[i][j].VX,
-					vx : d[i][j].VY
+					vy : -d[i][j].PX + d[i+1][j].PX,
+					vx : -d[i][j].PY + d[i+1][j].PY
 				});
 			}
 			if(j>=16&j<20){
@@ -94,8 +98,8 @@ $.get("http://147.47.206.13/data?start_time=107530&end_time=108530",function(d){
 				data[i].push({
 					y : d[i][j].PX,
 					x : d[i][j].PY,
-					vy : d[i][j].VX,
-					vx : d[i][j].VY
+					vy : -d[i][j].PX + d[i+1][j].PX,
+					vx : -d[i][j].PY + d[i+1][j].PY
 				});
 			}
 		}
@@ -126,7 +130,7 @@ $.get("http://147.47.206.13/data?start_time=107530&end_time=108530",function(d){
 				.attr("cy", function(d){return scaley(d.y);})
 				.attr("r",10);
 
-});
+}).fail(function(){alert("fail");});
 
 function move(selection, time) {
 	selection
