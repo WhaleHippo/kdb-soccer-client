@@ -167,22 +167,71 @@ $(window).resize(function() {
 */
 
 
-var timetable = [];
+var timeTable = [];
 var data = [];
 var slider;
+var FILED_X = [-52490,52490];
+var FILED_Y = [0,33960];
+var PLAYTIME = [0,1000];
 
-
-var scalex = d3.scale.linear().domain([-52490,52490]).range([0,$("#slider").width()*0.7]);
-var scaley = d3.scale.linear().domain([-33960,33960]).range([0,$("#slider").width()*0.729*0.7]);
-var scaletimeline =  d3.scale.linear().domain([0,1000]).range([0,$("#slider").width()]); // 정의역 : 0~전체게임시간
-var goaltime = [90, 150, 200, 300, 450, 700, 900, 950];
+var scaleX = d3.scale.linear().domain(FILED_X).range([0,$("#slider").width()*0.7]);
+var scaleY = d3.scale.linear().domain(FILED_Y).range([0,$("#slider").width()*0.729*0.7]);
+var scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]); // 정의역 : 0~전체게임시간
+var goalTime = [90, 150, 200, 300, 450, 700, 900, 950];
 var timerID;
-var timer_request;
+var timerRequest;
 
 var svg;
 var timeline;
 var ds;
 
+
+var queue = {
+	startTime : 0, // 현재 큐에서 가장 처음에 저장된 시간
+	endTime : 0, //현재 큐에서 가장 마지막에 저장된 시간
+	data : [],
+	input : function(data) { // 큐에 데이터를 집어넣는 함수
+		if (this.data.length > 1000) { // 이미 큐에 1000개의 데이터가 있는 경우
+			this.clear();
+		}
+		this.data = this.data.concat(data);
+		this.startTime = this.data[0];
+		this.endTime = this.data[this.data.length - 1];
+	},
+	print : function() { // 현재 큐의 내용물을 모두 출력하는 함수. 테스트용으로만 사용
+		alert(this.data);
+	},
+	clear : function() { // 큐를 비우는 함수
+		this.data = [];
+	},
+	returnData : function(time) { // 큐 안쪽에 시간에 해당되는 데이터가 있는지 없는지 확인하고 있으면 그 시간데의 데이터를 모두 리턴하는 함수
+		if (this.startTime <= time && time <= this.endTime) {
+			return this.data[time-startTime];
+		} else { // 범위 밖의 데이터를 요구하는 경우
+			this.clear();
+			clearInterval(timerRequest);//리퀘스트 정지
+			data_reqeust(serachTimetable(time));//새로운 리퀘스트 요청
+			return this.data[time-startTime];
+		}
+	}
+};
+
+
+function slidetime(slideValue) {// 슬라이드의 값을 실제의 시간으로 바꿔주는 함수. 이 함수가 필요한 이유는 전반전과 후반전 사이의 하프타임에서 시간의 공백이 생기기 때문이다.
+	return timeTable[parseInt(slideValue / 100)].START_TIME + (slideValue % 100);
+}
+
+
+function serachTimetable(time) {// time을 입력하면 timetable을 조사해서 해당 time이 timetable의 몇번째 index에 위치하는지 index를 리턴한다.
+	var low = 0, high = timeTable.length-1, mid=0;
+	while(low<=high){
+		mid = parseInt((low + high) / 2);
+		if(timeTable[mid].START_TIME>time) high = mid - 1;
+		else if(time > timeTable[mid].END_TIME) low = mid + 1;
+		else return mid;
+	}
+	return -1;
+}
 
 var lotation = function(x,y,theta){ // 선수들의 위치정보 + 각도를 바탕으로 표현해야할 폴리곤의 좌표값을 반환
 	var r = 10; // 선수들을 표현할 크기
@@ -199,23 +248,24 @@ var theta = function(vx, vy){ // 두 방향의 속도를 받아서 라디안값�
 function start(count) {
 	var time = count;
 	clearInterval(timerID);
-	//clearInterval(timer_request);
+	//clearInterval(timerRequest);
+
 	ds
 	.data(data[count])
 	.attr("points", function(d) {
-		return lotation(scalex(d.x), scaley(d.y), theta(d.vx, d.vy));
+		return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
 	})
-	.attr("x", function(d){return scalex(d.x);})
-	.attr("y", function(d){return scaley(d.y);})
-	.attr("cx", function(d){return scalex(d.x);})
-	.attr("cy", function(d){return scaley(d.y);});
+	.attr("x", function(d){return scaleX(d.PX);})
+	.attr("y", function(d){return scaleY(d.PY);})
+	.attr("cx", function(d){return scaleX(d.PX);})
+	.attr("cy", function(d){return scaleY(d.PY);});
 	
 	timerID = setInterval(function() {
 		$("#currentframe").text("frame : " + count);
 		ds.call(move, ++count);
 	}, 100);
 	/*
-	timer_request = setInterval(function(){
+	timerRequest = setInterval(function(){
 		time = time+100;
 		data_reqeust(time/100);
 	},5000);*/
@@ -224,22 +274,25 @@ function start(count) {
 
 
 function resizefiled(){ // 경기장 표현
-	 svg.select("#field1").attr("x",$("#slider").width()*0.2).attr("y",$("#slider").width()*0.729*0.35)
-		.attr("height",$("#slider").width()*0.4).attr("width",5);
-		
-	 svg.select("#field2").attr("x",$("#slider").width()*0.2).attr("y",$("#slider").width()*0.729*0.35)
-		.attr("height",5).attr("width",$("#slider").width()*0.675 + 5);
-		
-	 svg.select("#field3").attr("x",$("#slider").width()*0.875).attr("y",$("#slider").width()*0.729*0.35)
-		.attr("height",$("#slider").width()*0.4).attr("width",5);
-	 
-	 svg.select("#field4").attr("x",$("#slider").width()*0.2).attr("y",$("#slider").width()*0.729*0.35 + $("#slider").width()*0.4 - 5)
-		.attr("height",5).attr("width",$("#slider").width()*0.675 + 5);
-		
-	 svg.select("#field5").attr("x",$("#slider").width()*0.53).attr("y",$("#slider").width()*0.729*0.35)
-		.attr("height",$("#slider").width()*0.4).attr("width",5);
 	
-	 svg.select("#field5").attr("cx",$("#slider").width()*0.53).attr("cy",$("#slider").width()*0.729*0.35 + $("#slider").width()*0.2).attr("r",10);
+	var width = $("#slider").width();
+	
+	 svg.select("#field1").attr("x",width*0.2).attr("y",width*0.729*0.35)
+		.attr("height",width*0.4).attr("width",5);
+		
+	 svg.select("#field2").attr("x",width*0.2).attr("y",width*0.729*0.35)
+		.attr("height",5).attr("width",width*0.675 + 5);
+		
+	 svg.select("#field3").attr("x",width*0.875).attr("y",width*0.729*0.35)
+		.attr("height",width*0.4).attr("width",5);
+	 
+	 svg.select("#field4").attr("x",width*0.2).attr("y",width*0.729*0.35 + width*0.4 - 5)
+		.attr("height",5).attr("width",width*0.675 + 5);
+		
+	 svg.select("#field5").attr("x",width*0.53).attr("y",width*0.729*0.35)
+		.attr("height",width*0.4).attr("width",5);
+	
+	 svg.select("#field5").attr("cx",width*0.53).attr("cy",width*0.729*0.35 + width*0.2).attr("r",10);
 		
 }
 
@@ -250,12 +303,12 @@ function move(selection, time) {
 	.duration(100)
 	.ease("linear")
 	.attr("points", function(d) {
-		return lotation(scalex(d.x), scaley(d.y), theta(d.vx, d.vy));
+		return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
 	})
-	.attr("x", function(d){return scalex(d.x);})
-	.attr("y", function(d){return scaley(d.y);})
-	.attr("cx", function(d){return scalex(d.x);})
-	.attr("cy", function(d){return scaley(d.y);});
+	.attr("x", function(d){return scaleX(d.PX);})
+	.attr("y", function(d){return scaleY(d.PY);})
+	.attr("cx", function(d){return scaleX(d.PX);})
+	.attr("cy", function(d){return scaleY(d.PY);});
 	slider.slider("value", time);
 	
 	
@@ -263,47 +316,41 @@ function move(selection, time) {
 
 $(window).resize(function() {
 	// 축적 재설정
-	scalex = d3.scale.linear().domain([-52490,52490]).range([0,$("#slider").width()*0.7*1.5]);
-	scaley = d3.scale.linear().domain([-33960,33960]).range([0,$("#slider").width()*0.729*0.7]);
-	scaletimeline = d3.scale.linear().domain([0, 1000]).range([0, $("#slider").width()]);
+	
+	var width = $("#slider").width();
+	
+	scaleX = d3.scale.linear().domain(FILED_X).range([0,width*0.7*1.5]);
+	scaleY = d3.scale.linear().domain(FILED_Y).range([0,width*0.729*0.7]);
+	scaleTimeline = d3.scale.linear().domain(PLAYTIME).range([0, width]);
 	resizefiled();
 	// 인터페이스 크기 재설정
-	timeline = d3.select("body").select("#timeline").attr().attr("width", $("#slider").width()).attr("height", 20);
-	var svg = d3.select("body").select("#main").attr("width", $("#slider").width()).attr("height", $("#slider").width()*0.729);
+	timeline = d3.select("body").select("#timeline").attr().attr("width", width).attr("height", 20);
+	var svg = d3.select("body").select("#main").attr("width", width).attr("height", width*0.729);
 	
-	timeline.selectAll("rect").data(goaltime).attr("width", 3).attr("height", 10).attr("x", function(d) {
-		return scaletimeline(d);
+	timeline.selectAll("rect").data(goalTime).attr("width", 3).attr("height", 10).attr("x", function(d) {
+		return scaleTimeline(d);
 	}).attr("y", 10).attr("fill", "red");
 }); 
 
-
-
-
-
-
-
-
-
-
-
 $.get("http://147.47.206.13/meta/time", function(d) {
-	timetable = d;
+	timeTable = d;
 }).done(function() {
 	slider = $("#slider").slider({
 		orientation : "horizontal",
 		min : 0,
-		max : (timetable.length - 1) * 100 + timetable[timetable.length - 1].END_TIME - timetable[timetable.length - 1].START_TIME,
+		max : (timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME,
 		step : 1,
 		range : "min",
 		value : 1,
 		slide : function(e, ui) {
 			start(ui.value);
-
 		}
 	});
+	PLAYTIME = [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME];
+	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
 	var time = 0;
 	data_reqeust(time++);
-	timer_request = setInterval(function() {
+	timerRequest = setInterval(function() {
 		$("#datarequest").text("request times : " + time);
 		data_reqeust(time++);
 	}, 5000);
@@ -314,70 +361,37 @@ $.get("http://147.47.206.13/meta/time", function(d) {
 	alert("fail!!!");
 });
 
-
-
-
-
-
-
 function data_reqeust(index) {
-	$.get("http://147.47.206.13/data?start_time=" + timetable[index].START_TIME + "&end_time=" + timetable[index].END_TIME, function(d) {
-		var c = data.length;
-		for (var i = c; i < c+d.length; i++) {
-			data.push([]);
-			for (var j = 0; j < d[i-c].length; j++) {
-				if (j >= 0 && j < 16) {
-					data[i].push({
-						y : d[i-c][j].PX,
-						x : d[i-c][j].PY,
-						vy : d[i-c][j].VX,
-						vx : d[i-c][j].VY
-					});
-				}
-				if (j >= 16 & j < 20) {
-					data[i].push({
-						y : d[i-c][j].PX,
-						x : d[i-c][j].PY
-					});
-				}
-				if (j == 20) {
-					data[i].push({
-						y : d[i-c][j].PX,
-						x : d[i-c][j].PY,
-						vy : d[i-c][j].VX,
-						vx : d[i-c][j].VY
-					});
-				}
-			}
-		}
-
+	$.get("http://147.47.206.13/data?start_time=" + timeTable[index].START_TIME + "&end_time=" + timeTable[index].END_TIME, function(d) {
+		data = data.concat(d);
 	}).done(function() {
-		if ( index == 0) {
-			svg = d3.select("body").select("#main").attr("width", $("#slider").width()).attr("height", $("#slider").width() * 0.729);
-			scalex = d3.scale.linear().domain([-52490, 52490]).range([0, $("#slider").width() * 0.7 * 1.5]);
-			scaley = d3.scale.linear().domain([-33960, 33960]).range([0, $("#slider").width() * 0.729 * 0.7]);
+		if ( index == 0) { // 첫호출시
+			var width = $("#slider").width();
+			
+			svg = d3.select("body").select("#main").attr("width", width).attr("height", width * 0.729);
+			scaleX = d3.scale.linear().domain(FILED_X).range([0, width * 0.7 * 1.5]);
+			scaleY = d3.scale.linear().domain(FILED_Y).range([0, width * 0.729 * 0.7]);
 			resizefiled();
 
-			timeline = d3.select("body").select("#timeline").attr().attr("width", $("#slider").width()).attr("height", 20);
+			timeline = d3.select("body").select("#timeline").attr().attr("width", width).attr("height", 20);
 
-			timeline.selectAll("rect").data(goaltime).enter().append("rect").attr("width", 3).attr("height", 10).attr("x", function(d) {
-				return scaletimeline(d);
+			timeline.selectAll("rect").data(goalTime).enter().append("rect").attr("width", 3).attr("height", 10).attr("x", function(d) {
+				return scaleTimeline(d);
 			}).attr("y", 5).attr("fill", "red").on("click", function() {
-				start(Math.round(d3.select(this).attr("x") * 1000 / $("#slider").width()));
+				start(Math.round(d3.select(this).attr("x") * PLAYTIME[1] / width));
 			});
 
 			ds = svg.selectAll(".test").data(data[0]).attr("points", function(d) {
-				return lotation(scalex(d.x), scaley(d.y), theta(d.vx, d.vy));
+				return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
 			}).attr("x", function(d) {
-				return scalex(d.x);
+				return scaleX(d.PX);
 			}).attr("y", function(d) {
-				return scaley(d.y);
+				return scaleY(d.PY);
 			}).attr("width", 10).attr("height", 25).attr("cx", function(d) {
-				return scalex(d.x);
+				return scaleX(d.PX);
 			}).attr("cy", function(d) {
-				return scaley(d.y);
-			}).attr("r", 10).attr("text","1");
+				return scaleY(d.PY);
+			}).attr("r", 10);
 		}
 	});
 }
-
