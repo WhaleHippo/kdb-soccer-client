@@ -168,14 +168,19 @@ $(window).resize(function() {
 
 
 var timeTable = [];
-var data = [];
 var slider;
+var playButton = $("#playbutton"); // 재생 일시 정지 버튼
+var increasePlaySpeedButton = $("#increase");
+var decreasePlaySpeedButton = $("#decrease");
+
+var playSpeed = 1;//재생속도
+
 var FILED_X = [-52490,52490];
 var FILED_Y = [0,33960];
 var PLAYTIME = [0,1000];
 
-var scaleX = d3.scale.linear().domain(FILED_X).range([0,$("#slider").width()*0.7]);
-var scaleY = d3.scale.linear().domain(FILED_Y).range([0,$("#slider").width()*0.729*0.7]);
+var scaleX = d3.scale.linear().domain(FILED_X).range([30,$("#slider").width()*0.7]);
+var scaleY = d3.scale.linear().domain(FILED_Y).range([30,$("#slider").width()*0.729*0.7]);
 var scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]); // 정의역 : 0~전체게임시간
 var goalTime = [90, 150, 200, 300, 450, 700, 900, 950];
 var timerID;
@@ -185,43 +190,145 @@ var svg;
 var timeline;
 var ds;
 
-
 var queue = {
 	startTime : 0, // 현재 큐에서 가장 처음에 저장된 시간
 	endTime : 0, //현재 큐에서 가장 마지막에 저장된 시간
 	data : [],
-	input : function(data) { // 큐에 데이터를 집어넣는 함수
-		if (this.data.length > 1000) { // 이미 큐에 1000개의 데이터가 있는 경우
-			this.clear();
+	input : function(d) {// 큐에 데이터를 집어넣는 함수
+		if (this.data.length >= 1000) {// 이미 큐에 1000개의 데이터가 있는 경우
+			alert("input stop!");
+			
+			clearInterval(timerRequest);
+			// 리퀘스트 중지
 		}
-		this.data = this.data.concat(data);
-		this.startTime = this.data[0];
-		this.endTime = this.data[this.data.length - 1];
+		this.data = this.data.concat(d);
+		this.startTime = this.data[0][0].FRAME_TS;
+		this.endTime = this.data[this.data.length - 1][0].FRAME_TS;
 	},
-	print : function() { // 현재 큐의 내용물을 모두 출력하는 함수. 테스트용으로만 사용
-		alert(this.data);
+	print : function() {// 현재 큐의 내용물을 모두 출력하는 함수. 테스트용으로만 사용
+		console.log(this.data);
 	},
-	clear : function() { // 큐를 비우는 함수
+	clear : function() {// 큐를 비우는 함수
 		this.data = [];
 	},
-	returnData : function(time) { // 큐 안쪽에 시간에 해당되는 데이터가 있는지 없는지 확인하고 있으면 그 시간데의 데이터를 모두 리턴하는 함수
+
+	half_clear : function() {
+		alert("half clear!");
+		for (var i = 0; i < 500; i++) this.data.shift();
+		this.startTime = this.data[0][0].FRAME_TS;
+		this.endTime = this.data[this.data.length - 1][0].FRAME_TS;
+
+	},
+
+	returnData : function(time) {// 큐 안쪽에 시간에 해당되는 데이터가 있는지 없는지 확인하고 있으면 그 시간데의 데이터를 모두 리턴하는 함수
 		if (this.startTime <= time && time <= this.endTime) {
-			return this.data[time-startTime];
-		} else { // 범위 밖의 데이터를 요구하는 경우
+			if (500 < time - this.startTime && this.data.length >= 1000) {// 만일 요구하는 시간이  절반 이상에 위치하고 큐가 꽉 찼을 경우 절반을 비우고 새롭게 데이터를 받기 시작.
+				this.half_clear();
+				
+				var index = serachTimetable(time);
+				
+				data_reqeust(index);
+				timerRequest = setInterval(function() {//새로운 리퀘스트 요청
+					$("#datarequest").text("request times : " + index);
+
+					data_reqeust(++index);
+					
+				}, 5000);
+			}
+			return this.data[time - this.startTime];
+		} else {// 범위 밖의 데이터를 요구하는 경우
 			this.clear();
 			clearInterval(timerRequest);//리퀘스트 정지
-			data_reqeust(serachTimetable(time));//새로운 리퀘스트 요청
-			return this.data[time-startTime];
+			
+			var index = serachTimetable(time);
+			
+			data_reqeust(index);
+			timerRequest = setInterval(function() {//새로운 리퀘스트 요청
+				$("#datarequest").text("request times : " + index);
+				data_reqeust(++index);
+			}, 5000);
+			return this.data[time - this.startTime];
 		}
 	}
 };
 
+$.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타데이터를 가져오는 함수. 제일 먼저 실행된다.
+	timeTable = d;
+}).done(function() {
+	slider = $("#slider").slider({
+		orientation : "horizontal",
+		min : 0,
+		max : (timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME,
+		step : 1,
+		range : "min",
+		value : 0,
+		slide : function(e, ui) {
+			start(ui.value);
+		}
+	});
+	PLAYTIME = [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME];
+	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
+
+	var index = 0;
+	data_reqeust(index);
+	timerRequest = setInterval(function() {
+		$("#datarequest").text("request times : " + index);
+							
+					console.log(index + "th data");
+					console.log(queue.data[index][3]);
+	
+		data_reqeust(++index);
+	}, 5000);
+
+}).fail(function(){
+	alert("fail!!!");
+});
+
+function data_reqeust(index) {
+	
+	//alert(index + "th data request!");
+	
+	$.get("http://147.47.206.13/data?start_time=" + timeTable[index].START_TIME + "&end_time=" + timeTable[index].END_TIME, function(d) {
+		queue.input(d);
+	}).done(function() {
+		if ( index == 0) { // 첫호출시
+			var width = $("#slider").width();
+			
+			svg = d3.select("body").select("#main").attr("width", width).attr("height", width * 0.729);
+			scaleX = d3.scale.linear().domain(FILED_X).range([0, width * 0.7 * 1.5]);
+			scaleY = d3.scale.linear().domain(FILED_Y).range([0, width * 0.729 * 0.7]);
+			resizefiled();
+
+			timeline = d3.select("body").select("#timeline").attr().attr("width", width).attr("height", 20);
+
+			timeline.selectAll("rect").data(goalTime).enter().append("rect").attr("width", 3).attr("height", 10).attr("x", function(d) {
+				return scaleTimeline(d);
+			}).attr("y", 5).attr("fill", "red").on("click", function() {
+				start(Math.round(d3.select(this).attr("x") * PLAYTIME[1] / width));
+			});
+
+
+			ds = svg.selectAll(".test").data(queue.returnData(slidetime(0))).attr("points", function(d) {
+				return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
+			}).attr("x", function(d) {
+				return scaleX(d.PX);
+			}).attr("y", function(d) {
+				return scaleY(d.PY);
+			}).attr("width", 10).attr("height", 25).attr("cx", function(d) {
+				return scaleX(d.PX);
+			}).attr("cy", function(d) {
+				return scaleY(d.PY);
+			}).attr("r", 10).attr("id",10)
+			.on("click",function(d){
+				open_player_window(d.PID);
+			});
+		}
+	});
+}
 
 function slidetime(slideValue) {// 슬라이드의 값을 실제의 시간으로 바꿔주는 함수. 이 함수가 필요한 이유는 전반전과 후반전 사이의 하프타임에서 시간의 공백이 생기기 때문이다.
 	return timeTable[parseInt(slideValue / 100)].START_TIME + (slideValue % 100);
 }
-
-
 function serachTimetable(time) {// time을 입력하면 timetable을 조사해서 해당 time이 timetable의 몇번째 index에 위치하는지 index를 리턴한다.
 	var low = 0, high = timeTable.length-1, mid=0;
 	while(low<=high){
@@ -245,13 +352,14 @@ var theta = function(vx, vy){ // 두 방향의 속도를 받아서 라디안값�
 	else if(vx<0&&vy>0) return Math.atan(vy/vx)+Math.PI*3/2;
 	else return Math.atan(vy/vx);
 };
-function start(count) {
-	var time = count;
+
+function start(slideValue) { // 재생을 시작하는 함수
+	var time = slideValue;
 	clearInterval(timerID);
-	//clearInterval(timerRequest);
+	clearInterval(timerRequest);
 
 	ds
-	.data(data[count])
+	.data(queue.returnData(slidetime(slideValue)))
 	.attr("points", function(d) {
 		return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
 	})
@@ -261,17 +369,31 @@ function start(count) {
 	.attr("cy", function(d){return scaleY(d.PY);});
 	
 	timerID = setInterval(function() {
-		$("#currentframe").text("frame : " + count);
-		ds.call(move, ++count);
-	}, 100);
-	/*
-	timerRequest = setInterval(function(){
-		time = time+100;
-		data_reqeust(time/100);
-	},5000);*/
-
+		$("#currentframe").text("slide value : " + slideValue);
+		ds.call(move, ++slideValue);
+	}, 100/playSpeed);
 };
 
+function move(selection, slideValue) { // 선수,공과 데이터를 연동하여 움직이게 하는 함수
+	
+	selection
+	.data(queue.returnData(slidetime(slideValue)))
+	.transition()
+	.duration(100/playSpeed)
+	.ease("linear")
+	.attr("points", function(d) {
+		return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
+	})
+	.attr("x", function(d){return scaleX(d.PX);})
+	.attr("y", function(d){return scaleY(d.PY);})
+	.attr("cx", function(d){return scaleX(d.PX);})
+	.attr("cy", function(d){return scaleY(d.PY);});
+	
+	slider.slider("value", slideValue);
+	
+//	queue.returnData[slidetime(slideValue)];
+	
+}
 
 function resizefiled(){ // 경기장 표현
 	
@@ -296,31 +418,13 @@ function resizefiled(){ // 경기장 표현
 		
 }
 
-function move(selection, time) {
-	selection
-	.data(data[time])
-	.transition()
-	.duration(100)
-	.ease("linear")
-	.attr("points", function(d) {
-		return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
-	})
-	.attr("x", function(d){return scaleX(d.PX);})
-	.attr("y", function(d){return scaleY(d.PY);})
-	.attr("cx", function(d){return scaleX(d.PX);})
-	.attr("cy", function(d){return scaleY(d.PY);});
-	slider.slider("value", time);
-	
-	
-}
-
 $(window).resize(function() {
 	// 축적 재설정
 	
 	var width = $("#slider").width();
 	
-	scaleX = d3.scale.linear().domain(FILED_X).range([0,width*0.7*1.5]);
-	scaleY = d3.scale.linear().domain(FILED_Y).range([0,width*0.729*0.7]);
+	scaleX = d3.scale.linear().domain(FILED_X).range([30,width*0.7*1.5]);
+	scaleY = d3.scale.linear().domain(FILED_Y).range([30,width*0.729*0.7]);
 	scaleTimeline = d3.scale.linear().domain(PLAYTIME).range([0, width]);
 	resizefiled();
 	// 인터페이스 크기 재설정
@@ -332,66 +436,28 @@ $(window).resize(function() {
 	}).attr("y", 10).attr("fill", "red");
 }); 
 
-$.get("http://147.47.206.13/meta/time", function(d) {
-	timeTable = d;
-}).done(function() {
-	slider = $("#slider").slider({
-		orientation : "horizontal",
-		min : 0,
-		max : (timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME,
-		step : 1,
-		range : "min",
-		value : 1,
-		slide : function(e, ui) {
-			start(ui.value);
-		}
-	});
-	PLAYTIME = [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME];
-	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
-	var time = 0;
-	data_reqeust(time++);
-	timerRequest = setInterval(function() {
-		$("#datarequest").text("request times : " + time);
-		data_reqeust(time++);
-	}, 5000);
-
-	//	data_reqeust(0);
-
-}).fail(function(){
-	alert("fail!!!");
-});
-
-function data_reqeust(index) {
-	$.get("http://147.47.206.13/data?start_time=" + timeTable[index].START_TIME + "&end_time=" + timeTable[index].END_TIME, function(d) {
-		data = data.concat(d);
-	}).done(function() {
-		if ( index == 0) { // 첫호출시
-			var width = $("#slider").width();
-			
-			svg = d3.select("body").select("#main").attr("width", width).attr("height", width * 0.729);
-			scaleX = d3.scale.linear().domain(FILED_X).range([0, width * 0.7 * 1.5]);
-			scaleY = d3.scale.linear().domain(FILED_Y).range([0, width * 0.729 * 0.7]);
-			resizefiled();
-
-			timeline = d3.select("body").select("#timeline").attr().attr("width", width).attr("height", 20);
-
-			timeline.selectAll("rect").data(goalTime).enter().append("rect").attr("width", 3).attr("height", 10).attr("x", function(d) {
-				return scaleTimeline(d);
-			}).attr("y", 5).attr("fill", "red").on("click", function() {
-				start(Math.round(d3.select(this).attr("x") * PLAYTIME[1] / width));
-			});
-
-			ds = svg.selectAll(".test").data(data[0]).attr("points", function(d) {
-				return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
-			}).attr("x", function(d) {
-				return scaleX(d.PX);
-			}).attr("y", function(d) {
-				return scaleY(d.PY);
-			}).attr("width", 10).attr("height", 25).attr("cx", function(d) {
-				return scaleX(d.PX);
-			}).attr("cy", function(d) {
-				return scaleY(d.PY);
-			}).attr("r", 10);
-		}
-	});
+function open_player_window(id) {
+	var newwindow = window.open("newwindow.html");
+	newwindow.id = id;
 }
+var playState = true; //실행여부 ture면 실행, false면 일시정지
+playButton.click(function() {
+	$(this).attr("value", function() {
+		if (playState) {
+			playState=false;
+			start(0);
+			return "stop";
+		} else
+		clearInterval(timerID);
+			playState=true;
+			return "play";
+	});
+});
+increasePlaySpeedButton.click(function() {
+	if (playSpeed <= 2) playSpeed = playSpeed + 0.1;
+	$("#playspeed").text(parseInt(playSpeed*100) + "%");
+}); 
+decreasePlaySpeedButton.click(function() {
+	if (playSpeed > 0.6) playSpeed = playSpeed - 0.1;
+	$("#playspeed").text(parseInt(playSpeed*100) + "%");
+}); 
