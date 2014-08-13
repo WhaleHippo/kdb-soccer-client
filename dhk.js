@@ -331,6 +331,12 @@ function data_reqeust(index) {
 			.on("click",function(d){
 				open_player_window(d.PID);
 			});
+			
+			svg.selectAll("text").data(buffer.returnData(slidetime(0))).attr("x", function(d) {
+				return scaleX(d.PX);
+			}).attr("y", function(d) {
+				return scaleY(d.PY);
+			});
 		}	
 	});
 }
@@ -397,6 +403,17 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 	.attr("y", function(d){return scaleY(d.PY);})
 	.attr("cx", function(d){return scaleX(d.PX);})
 	.attr("cy", function(d){return scaleY(d.PY);});
+	
+	
+	svg.selectAll("text").data(buffer.returnData(slidetime(slideValue)))
+	.transition()
+	.duration(100 / playSpeed)
+	.attr("x", function(d) {
+		return scaleX(d.PX);
+	}).attr("y", function(d) {
+		return scaleY(d.PY);
+	}); 
+
 	
 	slider.slider("value", slideValue);
 	
