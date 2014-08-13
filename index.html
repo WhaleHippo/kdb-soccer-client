@@ -3,10 +3,10 @@
 		<title>index</title>
 	</head>
 	<body>
-
+		
 		<svg id = "main" style="background-color:green">
 			
-			<circle id="field0" fill="white"></circle>
+			<circle id="field0" fill="green" stroke-width="3" stroke="white"></circle>
 			<rect id="field1" fill="white"></rect>
 			<rect id="field2" fill="white"></rect>
 			<rect id="field3" fill="white"></rect>
@@ -37,16 +37,25 @@
 			<circle class="test" fill="black"></circle>
 			<circle class="test" fill="black"></circle>
 			<circle class="test" fill="black"></circle>
-			
+			 
 			<polygon class="test" fill="yellow"></polygon>
 			
 			
 			
 		</svg>
 		
-		<div id="slider"></div>
+		<input type="button" id="decrease" value="decrease"></input>
+		<input type="button" id="playbutton" value="play"></input>
+		<input type="button" id="increase" value="increase"></input>
+		<p id="playspeed">100%</p>
 		
-		<svg class id = "timeline"></svg>
+		
+		<div id="slider"></div>
+		<svg id = "loading" height = "20">
+			<rect fill="blue" width = "10" height = "10" x="0" y="0"></rect>
+		</svg>
+
+		<svg id = "timeline">	</svg>
 		
 		<p id="currentframe"></p>
 		<p id="datarequest"></p>
@@ -57,6 +66,5 @@
 		<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
 		<link rel="stylesheet" href="/resources/demos/style.css">
 		<script src = "dhk.js"></script>
-
 	</body>
 </html>
