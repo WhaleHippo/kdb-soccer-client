@@ -36,8 +36,8 @@ function slidetime(slideValue) {// 슬라이드의 값을 실제의 시간으로
 }
 
 var data=[];
-for(var i=0;i<100;i++){
-	data.push(10+Math.random()*50);
+for(var i=0;i<10;i++){
+	data.push(50);
 }
 
 slider = $("#slider").slider({
@@ -51,12 +51,14 @@ slider = $("#slider").slider({
 });
 
 var svg = d3.select("body").select("#playerstate").attr("width", $("#slider").width()).attr("height", 100);
-svg.selectAll("circle").data(data)
+
+svg.selectAll("rect").data(data)
 				.enter()
-				.append("circle")
-				.attr("r", 4)
-				.attr("cy", function(d) {return 100-d;})
-				.attr("cx",function(d,i){return $("#slider").width()*i/100;});
+				.append("rect")
+				.attr("height", function(d){return d;})
+				.attr("width",function(d){return $("#slider").width()/10;})
+				.attr("y", function(d) {return 100-d;})
+				.attr("x",function(d,i){return $("#slider").width()*i/10;});
 
 
 function change(ui) {
@@ -72,14 +74,11 @@ function change(ui) {
 		}
 		else changeData[i]=-10;
 	}
-	svg.selectAll("circle").data(changeData)
-				.attr("r", 4)
-				.attr("cy", function(d) {return 100-d;})
-				.attr("cx",function(d,i){return $("#slider").width()*i/100;});
 	
 	clearInterval(timerHeatMap);
 
 	timerHeatMap = setInterval(function() {
+		clearInterval(timerHeatMap);
 		$.get("http://147.47.206.13/analysis/heatmap?start_time=" + timeLeft +"&end_time=" + timeRight+ "&name=" + id, function(d) {
 			//alert(d);
 			var i;
@@ -93,16 +92,41 @@ function change(ui) {
 				}
 			}
 		}).done(function() {
-			heatMap.selectAll("rect").data(heatMapData).attr("fill", function(d) {
+			heatMap.selectAll("rect").data(heatMapData)
+			.transition()
+			.attr("fill", function(d) {
 				return d;
 			}).attr("x", function(d, i) {
 				return (i % 151) * 5;
 			}).attr("y", function(d, i) {
 				return parseInt(i / 151) * 5;
 			}).attr("height", 5).attr("width", 5);
-			clearInterval(timerHeatMap);
 		});
-	}, 500);
 
-	//svg.selectAll("circle").exit().remove();
+		var distanceArray=[];
+		distance_request(timeLeft,timeRight,distanceArray,(timeRight-timeLeft)/10);
+		
+	}, 500);
+	
+
+}
+function distance_request(starttime, endtime, distanceArray, dis) {
+	$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=" + starttime + "&end_time=" + starttime + dis + "&name=" + id, function(d) {
+		distanceArray = distanceArray.concat(d);
+		console.log(d[0].SUM);
+	}).done(function() {
+		if (starttime < endtime) {
+			distance_request(starttime + dis, endtime, distanceArray, dis);
+		} else {
+			svg.selectAll("rect").data(distanceArray).transition().attr("height", function(d) {
+				return d.SUM * 10;
+			}).attr("width", function(d) {
+				return $("#slider").width() / 10;
+			}).attr("y", function(d) {
+				return 100 - d.SUM * 10;
+			}).attr("x", function(d, i) {
+				return $("#slider").width() * i / 10;
+			});
+		}
+	});
 }

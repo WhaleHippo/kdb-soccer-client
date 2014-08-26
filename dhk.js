@@ -17,7 +17,8 @@ var goalTime = [90, 150, 200, 300, 450, 700, 900, 950];
 var timerID; // 트랜지션에 대한 타이머
 var timerRequest; // 요청에 대한 타이머
 var timerSlider; // 슬라이드의 연속적인 움짐임을 제어하기 위한 타이머
-var ballPossession = []; // 공의 데이터
+var timerDistance; // 선수들의 거리를 가져오는 것에 대한 타이머
+var timerBallPossession; // 공의 점유율에 대한 타이머
 
 var loadingState;//데이터 로딩 정도를 나타내는 것 d3.select("body").select("#loading").attr().attr("width", width).attr("height", 20);
 
@@ -41,8 +42,7 @@ var buffer = {
 			clearInterval(timerRequest);// 리퀘스트 중지
 		}
 
-		loadingState.select("rect").attr("x",(this.startTime-107530)*$("#slider").width()/40000).attr("width",(this.endTime-this.startTime)*$("#slider").width()/35000);
-		
+		loadingState.select("rect").attr("x",(timeslide(this.startTime)*$("#slider").width()/36066)).attr("width",(timeslide(this.endTime)-timeslide(this.startTime))*$("#slider").width()/36066);
 	},
 	print : function() {// 현재 큐의 내용물을 모두 출력하는 함수. 테스트용으로만 사용
 		console.log(this.data);
@@ -78,7 +78,8 @@ var buffer = {
 			}
 			return this.data[time - this.startTime];
 		} else {// 범위 밖의 데이터를 요구하는 경우
-			
+			playState=true;
+			playButton.attr("value", "play");
 			this.clear();
 			clearInterval(timerRequest);//리퀘스트 정지
 			
@@ -112,18 +113,20 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 	PLAYTIME = [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME];
 	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
 	
-	loadingState = d3.select("body").select("#loading").attr("width", $("#slider").width()).attr("height", 20);
+	timeline = d3.select("body").select("#timeline").attr().attr("width", $("#slider").width()).attr("height", 20);
 	
+	loadingState = d3.select("body").select("#loading").attr("width", $("#slider").width()).attr("height", 20);
 	var index = 0;
 	data_reqeust(index);
 	timerRequest = setInterval(function() {
 		$("#datarequest").text("request times : " + index);
-							
-					console.log(index + "th data");
-					console.log(buffer.data[index][3]);
-	
 		data_reqeust(++index);
 	}, 5000);
+	
+	$.get("http://147.47.206.13/meta/shot", function(d) { //슈팅에 대한 메타데이터를 받아
+		goalTime = d;
+		
+	});
 
 }).fail(function(){
 	alert("fail!!!");
@@ -131,12 +134,10 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 
 function data_reqeust(index) {
 	
-	//alert(index + "th data request!");
-	
 	$.get("http://147.47.206.13/data?start_time=" + timeTable[index].START_TIME + "&end_time=" + timeTable[index].END_TIME, function(d) {
 		buffer.input(d);
 		console.log(index + "th data");
-		console.log(buffer.data[index][3]);
+		console.log(buffer.data[index][0]);
 	}).done(function() {
 		if ( index == 0) { // 첫호출시
 			var width = $("#slider").width();
@@ -150,10 +151,13 @@ function data_reqeust(index) {
 			
 
 			timeline.selectAll("rect").data(goalTime).enter().append("rect").attr("width", 3).attr("height", 10).attr("x", function(d) {
-				return scaleTimeline(d);
+				return scaleTimeline(timeslide(d.SHOT_TIME));
 			}).attr("y", 5).attr("fill", "red").on("click", function() {
 				start(Math.round(d3.select(this).attr("x") * PLAYTIME[1] / width));
+				slider.slider("value",Math.round(d3.select(this).attr("x") * PLAYTIME[1] / width));
 			});
+			
+			distanceTable.attr("height",160).attr("width",width);
 
 
 			ds = svg.selectAll(".test").data(buffer.returnData(slidetime(0))).attr("points", function(d) {
@@ -183,6 +187,11 @@ function data_reqeust(index) {
 function slidetime(slideValue) {// 슬라이드의 값을 실제의 시간으로 바꿔주는 함수. 이 함수가 필요한 이유는 전반전과 후반전 사이의 하프타임에서 시간의 공백이 생기기 때문이다.
 	return timeTable[parseInt(slideValue / 100)].START_TIME + (slideValue % 100);
 }
+
+function timeslide(time){ // 시간을 슬라이드 밸류로 바꿔주는 함수
+	return serachTimetable(time)*100 + time - timeTable[serachTimetable(time)].START_TIME;
+}
+
 function serachTimetable(time) {// time을 입력하면 timetable을 조사해서 해당 time이 timetable의 몇번째 index에 위치하는지 index를 리턴한다.
 	var low = 0, high = timeTable.length-1, mid=0;
 	while(low<=high){
@@ -211,6 +220,10 @@ function start(slideValue) { // 재생을 시작하는 함수
 	var time = slidetime(slideValue);
 	clearInterval(timerID);
 	clearInterval(timerSlider);
+	clearInterval(timerDistance);
+	clearInterval(timerBallPossession);
+	
+	$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 	
 	if (buffer.startTime <= time && time <= buffer.endTime){
 		ds
@@ -221,7 +234,16 @@ function start(slideValue) { // 재생을 시작하는 함수
 		.attr("x", function(d){return scaleX(d.PX);})
 		.attr("y", function(d){return scaleY(d.PY);})
 		.attr("cx", function(d){return scaleX(d.PX);})
-		.attr("cy", function(d){return scaleY(d.PY);});
+		.attr("cy", function(d){return scaleY(d.PY);})
+		.attr("fill",function(d,i){
+			if(d.PX==null) return "transparent";
+			else{
+				if(i<8) return "blue";
+				else if(i<16) return "red";
+				else if (i<20) return "black";
+				else return "yellow";
+			}
+		});
 		
 		svg.selectAll("text").data(buffer.returnData(time))
 		.transition()
@@ -230,15 +252,20 @@ function start(slideValue) { // 재생을 시작하는 함수
 			return scaleX(d.PX);
 		}).attr("y", function(d) {
 			return scaleY(d.PY);
-		}); 
+		}).text(function(d,i){
+			if(d.PX==null) return " ";
+			else return i+1;
+		});;
 		
 		timerID = setInterval(function() {
+			$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 			$("#currentframe").text("slide value : " + slideValue);
 			ds.call(move, ++slideValue);
 		}, 100/playSpeed);
 	}
 	else{
 		timerSlider = setInterval(function(){
+			clearInterval(timerSlider);
 			ds
 			.data(buffer.returnData(time))
 			.attr("points", function(d) {
@@ -247,7 +274,16 @@ function start(slideValue) { // 재생을 시작하는 함수
 			.attr("x", function(d){return scaleX(d.PX);})
 			.attr("y", function(d){return scaleY(d.PY);})
 			.attr("cx", function(d){return scaleX(d.PX);})
-			.attr("cy", function(d){return scaleY(d.PY);});
+			.attr("cy", function(d){return scaleY(d.PY);})
+			.attr("fill",function(d,i){
+				if(d.PX==null) return "transparent";
+				else{
+					if(i<8) return "blue";
+					else if(i<16) return "red";
+					else if (i<20) return "black";
+					else return "yellow";
+				}
+			});
 			
 			svg.selectAll("text").data(buffer.returnData(time))
 			.transition()
@@ -256,16 +292,32 @@ function start(slideValue) { // 재생을 시작하는 함수
 				return scaleX(d.PX);
 			}).attr("y", function(d) {
 				return scaleY(d.PY);
-			}); 
+			}).text(function(d,i){
+				if(d.PX==null) return " ";
+				else return i+1;
+			});
 			
-			clearInterval(timerSlider);
+			
 			timerID = setInterval(function() {
+				$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 				$("#currentframe").text("slide value : " + slideValue);
 				ds.call(move, ++slideValue);
 			}, 100/playSpeed);
 			
 		},1000);
 	}
+	timerDistance = setInterval(function(){
+		$.get("http://147.47.206.13/analysis/run_distance?time="+slidetime(slider.slider("value")), function(d) {
+			console.log(d[0]);
+			distanceTable.selectAll("rect").data(d).attr("x",0).attr("y",function(d,i){return i*10;}).attr("height",10).attr("width",function(d){return d.SUM*100;});
+		});
+	},10000);
+	
+	timerBallPossession = setInterval(function(){
+		$.get("http://147.47.206.13/analysis/possession/team?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(){
+			
+		});
+	},100000);
 	
 };
 
@@ -282,7 +334,16 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 	.attr("x", function(d){return scaleX(d.PX);})
 	.attr("y", function(d){return scaleY(d.PY);})
 	.attr("cx", function(d){return scaleX(d.PX);})
-	.attr("cy", function(d){return scaleY(d.PY);});
+	.attr("cy", function(d){return scaleY(d.PY);})
+	.attr("fill",function(d,i){
+		if(d.PX==null) return "transparent";
+		else{
+			if(i<8) return "blue";
+			else if(i<16) return "red";
+			else if (i<20) return "black";
+			else return "yellow";
+		}
+	});
 	
 	
 	svg.selectAll("text").data(buffer.returnData(slidetime(slideValue)))
@@ -292,12 +353,15 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 		return scaleX(d.PX);
 	}).attr("y", function(d) {
 		return scaleY(d.PY);
-	}); 
+	}).text(function(d,i){
+		if(d.PX==null) return " ";
+		else return i+1;
+	});
+
+
 
 	
 	slider.slider("value", slideValue);
-	
-//	buffer.returnData[slidetime(slideValue)];
 	
 }
 
@@ -338,7 +402,7 @@ $(window).resize(function() {
 	var svg = d3.select("body").select("#main").attr("width", width).attr("height", width*0.729);
 	
 	timeline.selectAll("rect").data(goalTime).attr("width", 3).attr("height", 10).attr("x", function(d) {
-		return scaleTimeline(d);
+		return scaleTimeline(timeslide(d.SHOT_TIME));
 	}).attr("y", 10).attr("fill", "red");
 }); 
 function open_player_window(id) {
@@ -351,7 +415,7 @@ playButton.click(function() {
 	$(this).attr("value", function() {
 		if (playState) {
 			playState=false;
-			start(0);
+			start(slider.slider("value"));
 			return "stop";
 		} else
 		clearInterval(timerID);
