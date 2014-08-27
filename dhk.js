@@ -1,8 +1,5 @@
 var timeTable = [];
 var slider;
-var playButton = $("#playbutton"); // 재생 일시 정지 버튼
-var increasePlaySpeedButton = $("#increase");
-var decreasePlaySpeedButton = $("#decrease");
 
 var playSpeed = 1;//재생속도
 
@@ -25,27 +22,26 @@ var loadingState;//데이터 로딩 정도를 나타내는 것 d3.select("body")
 var svg;
 var timeline;
 var ds;
-var distanceTable = d3.select("body").select("#distance"); // 선수, 공, 레프리별 이동거리를 표현
+var distanceTable = d3.select("#distance"); // 선수, 공, 레프리별 이동거리를 표현
 
 var buffer = {
 	startTime : 0, // 현재 큐에서 가장 처음에 저장된 시간
 	endTime : 0, //현재 큐에서 가장 마지막에 저장된 시간
 	data : [],
+	bufferSize : 1000,
 	input : function(d) {// 큐에 데이터를 집어넣는 함수
 		
 		this.data = this.data.concat(d);
 		this.startTime = this.data[0][0].FRAME_TS;
 		this.endTime = this.data[this.data.length - 1][0].FRAME_TS;
 		//alert("data : " + this.data.length);
-		if (this.data.length >= 1000) {// 이미 큐에 1000개의 데이터가 있는 경우
+		if (this.data.length >= this.bufferSize) {// 이미 큐에 1000개의 데이터가 있는 경우
 			//alert("input stop!");
 			clearInterval(timerRequest);// 리퀘스트 중지
 		}
+		
 
 		loadingState.select("rect").attr("x",(timeslide(this.startTime)*$("#slider").width()/36066)).attr("width",(timeslide(this.endTime)-timeslide(this.startTime))*$("#slider").width()/36066);
-	},
-	print : function() {// 현재 큐의 내용물을 모두 출력하는 함수. 테스트용으로만 사용
-		console.log(this.data);
 	},
 	clear : function() {// 큐를 비우는 함수
 		this.data = [];
@@ -54,8 +50,7 @@ var buffer = {
 	},
 
 	half_clear : function() {
-		//alert("half clear!");
-		for (var i = 0; i < 500; i++) this.data.shift();
+		for (var i = 0; i < this.bufferSize/2; i++) this.data.shift();
 		this.startTime = this.data[0][0].FRAME_TS;
 		this.endTime = this.data[this.data.length - 1][0].FRAME_TS;
 
@@ -63,7 +58,7 @@ var buffer = {
 
 	returnData : function(time) {// 큐 안쪽에 시간에 해당되는 데이터가 있는지 없는지 확인하고 있으면 그 시간데의 데이터를 모두 리턴하는 함수
 		if (this.startTime <= time && time <= this.endTime) {
-			if (500 < time - this.startTime && this.data.length >= 1000) {// 만일 요구하는 시간이  절반 이상에 위치하고 큐가 꽉 찼을 경우 절반을 비우고 새롭게 데이터를 받기 시작.
+			if (this.bufferSize/2 < time - this.startTime && this.data.length >= this.bufferSize) {// 만일 요구하는 시간이  절반 이상에 위치하고 큐가 꽉 찼을 경우 절반을 비우고 새롭게 데이터를 받기 시작.
 				this.half_clear();
 				
 				var index = serachTimetable(this.endTime)+1;
@@ -76,15 +71,17 @@ var buffer = {
 					
 				}, 5000);
 			}
+//			console.log(slider.slider("value"))
+			console.log(this.data[time - this.startTime][0]);
 			return this.data[time - this.startTime];
 		} else {// 범위 밖의 데이터를 요구하는 경우
 			playState=true;
-			playButton.attr("value", "play");
+			$("#playbutton").attr("value", "play");
 			this.clear();
 			clearInterval(timerRequest);//리퀘스트 정지
 			
 			var index = serachTimetable(time);
-			/**/
+
 			data_reqeust(index);
 			timerRequest = setInterval(function() {//새로운 리퀘스트 요청
 				$("#datarequest").text("request times : " + index);
@@ -110,12 +107,14 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 			start(ui.value);
 		}
 	});
+	
 	PLAYTIME = [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME];
 	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
 	
 	timeline = d3.select("body").select("#timeline").attr().attr("width", $("#slider").width()).attr("height", 20);
 	
 	loadingState = d3.select("body").select("#loading").attr("width", $("#slider").width()).attr("height", 20);
+
 	var index = 0;
 	data_reqeust(index);
 	timerRequest = setInterval(function() {
@@ -125,9 +124,11 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 	
 	$.get("http://147.47.206.13/meta/shot", function(d) { //슈팅에 대한 메타데이터를 받아
 		goalTime = d;
-		
+	}).done(function(){
+		resize_window();
+			resizefiled();
 	});
-
+	
 }).fail(function(){
 	alert("fail!!!");
 });
@@ -136,16 +137,16 @@ function data_reqeust(index) {
 	
 	$.get("http://147.47.206.13/data?start_time=" + timeTable[index].START_TIME + "&end_time=" + timeTable[index].END_TIME, function(d) {
 		buffer.input(d);
-		console.log(index + "th data");
-		console.log(buffer.data[index][0]);
 	}).done(function() {
 		if ( index == 0) { // 첫호출시
 			var width = $("#slider").width();
 			
-			svg = d3.select("body").select("#main").attr("width", width).attr("height", width * 0.729);
-			scaleX = d3.scale.linear().domain(FILED_X).range([30, width * 0.7 * 1.5 - 30]);
-			scaleY = d3.scale.linear().domain(FILED_Y).range([30, width * 0.729 * 0.7 - 30]);
+			resize_window();
 			resizefiled();
+			
+			svg = d3.select("body").select("#main").attr("width", $("#content1").width()).attr("height", $("#content1").height());
+			scaleX = d3.scale.linear().domain(FILED_X).range([30,$("#content1").width()*0.7*1.5]);
+			scaleY = d3.scale.linear().domain(FILED_Y).range([30,$("#content1").height()*0.7]);
 
 			timeline = d3.select("body").select("#timeline").attr("width", width).attr("height", 20);
 			
@@ -159,7 +160,6 @@ function data_reqeust(index) {
 			
 			distanceTable.attr("height",160).attr("width",width);
 
-
 			ds = svg.selectAll(".test").data(buffer.returnData(slidetime(0))).attr("points", function(d) {
 				return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
 			}).attr("x", function(d) {
@@ -170,7 +170,7 @@ function data_reqeust(index) {
 				return scaleX(d.PX);
 			}).attr("cy", function(d) {
 				return scaleY(d.PY);
-			}).attr("r", 10).attr("id",10)
+			}).attr("r", 7).attr("id",10)
 			.on("click",function(d){
 				open_player_window(d.PID);
 			});
@@ -180,7 +180,12 @@ function data_reqeust(index) {
 			}).attr("y", function(d) {
 				return scaleY(d.PY);
 			});
+			
+			resize_window();
+			resizefiled();
 		}	
+	}).fail(function(){
+		alert("fail!");
 	});
 }
 
@@ -217,13 +222,14 @@ var theta = function(vx, vy){ // 두 방향의 속도를 받아서 라디안값�
 };
 
 function start(slideValue) { // 재생을 시작하는 함수
+	
 	var time = slidetime(slideValue);
 	clearInterval(timerID);
 	clearInterval(timerSlider);
 	clearInterval(timerDistance);
 	clearInterval(timerBallPossession);
 	
-	$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+	$("#header_center").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 	
 	if (buffer.startTime <= time && time <= buffer.endTime){
 		ds
@@ -236,6 +242,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 		.attr("cx", function(d){return scaleX(d.PX);})
 		.attr("cy", function(d){return scaleY(d.PY);})
 		.attr("fill",function(d,i){
+			if(d.POSSESS == 1) return "white";
 			if(d.PX==null) return "transparent";
 			else{
 				if(i<8) return "blue";
@@ -249,16 +256,18 @@ function start(slideValue) { // 재생을 시작하는 함수
 		.transition()
 		.duration(100 / playSpeed)
 		.attr("x", function(d) {
-			return scaleX(d.PX);
+			if(d.PX==null) return $(this).attr("x");
+			else return scaleX(d.PX);
 		}).attr("y", function(d) {
-			return scaleY(d.PY);
+			if(d.PX==null) return $(this).attr("y");
+			else return scaleY(d.PY);
 		}).text(function(d,i){
-			if(d.PX==null) return " ";
+			if(d.PX==null) return "null";
 			else return i+1;
-		});;
+		});
 		
 		timerID = setInterval(function() {
-			$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+			$("#header_center").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 			$("#currentframe").text("slide value : " + slideValue);
 			ds.call(move, ++slideValue);
 		}, 100/playSpeed);
@@ -276,6 +285,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 			.attr("cx", function(d){return scaleX(d.PX);})
 			.attr("cy", function(d){return scaleY(d.PY);})
 			.attr("fill",function(d,i){
+				
 				if(d.PX==null) return "transparent";
 				else{
 					if(i<8) return "blue";
@@ -289,27 +299,34 @@ function start(slideValue) { // 재생을 시작하는 함수
 			.transition()
 			.duration(100 / playSpeed)
 			.attr("x", function(d) {
-				return scaleX(d.PX);
+				if(d.PX==null) return $(this).attr("x");
+				else return scaleX(d.PX);
 			}).attr("y", function(d) {
-				return scaleY(d.PY);
+				if(d.PX==null) return $(this).attr("y");
+				else return scaleY(d.PY);
 			}).text(function(d,i){
-				if(d.PX==null) return " ";
+				if(d.PX==null) return "null";
 				else return i+1;
 			});
-			
+					
 			
 			timerID = setInterval(function() {
-				$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+				$("#header_center").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 				$("#currentframe").text("slide value : " + slideValue);
 				ds.call(move, ++slideValue);
 			}, 100/playSpeed);
 			
 		},1000);
 	}
+	
+	$.get("http://147.47.206.13/analysis/run_distance?time="+slidetime(slider.slider("value")), function(d) {
+		//console.log(d[0]);
+		distanceTable.selectAll("rect").data(d).attr("y",function(d){return 160-d.SUM*20;}).attr("x",function(d,i){return i*10;}).attr("width",10).attr("height",function(d){return d.SUM*20;});
+	});
 	timerDistance = setInterval(function(){
 		$.get("http://147.47.206.13/analysis/run_distance?time="+slidetime(slider.slider("value")), function(d) {
-			console.log(d[0]);
-			distanceTable.selectAll("rect").data(d).attr("x",0).attr("y",function(d,i){return i*10;}).attr("height",10).attr("width",function(d){return d.SUM*100;});
+			//console.log(d[0]);
+			distanceTable.selectAll("rect").data(d).attr("y",function(d){return 160-d.SUM*20;}).attr("x",function(d,i){return i*10;}).attr("width",10).attr("height",function(d){return d.SUM*20;});
 		});
 	},10000);
 	
@@ -336,6 +353,12 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 	.attr("cx", function(d){return scaleX(d.PX);})
 	.attr("cy", function(d){return scaleY(d.PY);})
 	.attr("fill",function(d,i){
+		if(d.POSSESS == 1){ 
+			$(this).attr("stroke-width", 3).attr( "stroke","white");
+		}
+		else{
+			$(this).attr("stroke-width", 0);
+		}
 		if(d.PX==null) return "transparent";
 		else{
 			if(i<8) return "blue";
@@ -345,29 +368,115 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 		}
 	});
 	
-	
 	svg.selectAll("text").data(buffer.returnData(slidetime(slideValue)))
 	.transition()
 	.duration(100 / playSpeed)
 	.attr("x", function(d) {
-		return scaleX(d.PX);
+		if(d.PX==null) return $(this).attr("x");
+		else return scaleX(d.PX);
 	}).attr("y", function(d) {
-		return scaleY(d.PY);
+		if(d.PX==null) return $(this).attr("y");
+		else return scaleY(d.PY);
 	}).text(function(d,i){
-		if(d.PX==null) return " ";
+		if(d.PX==null) return "null";
 		else return i+1;
 	});
-
-
-
 	
 	slider.slider("value", slideValue);
+}
+
+function open_player_window(id) {
+	var newwindow = window.open("newwindow.html");
+	newwindow.id = id;
+	//newwindow.timeTable=timeTable;
+}
+var playState = true; //실행여부 ture면 실행, false면 일시정지
+$("#playbutton").click(function() {
+	$(this).attr("value", function() {
+		if (playState) {
+			playState=false;
+			start(slider.slider("value"));
+			return "stop";
+		} else
+		clearInterval(timerID);
+			playState=true;
+			return "play";
+	});
+});
+$("#increase").click(function() {
+	if (playSpeed <= 2) playSpeed = playSpeed + 0.1;
+	$("#playspeed").text("playspeed : "+parseInt(playSpeed*100) + "%");
+}); 
+$("#decrease").click(function() {
+	if (playSpeed > 0.6) playSpeed = playSpeed - 0.1;
+	$("#playspeed").text("playspeed : "+parseInt(playSpeed*100) + "%");
+});
+$("#check1").click(function() {
+	if(this.is("checked")) alert("!");
+	else alert("!!");
+});
+
+
+function resize_window(){
+	d3.select("body").select("#container").style("width",function(){
+		return $(window).width();
+	});
+	d3.select("body").select("#container").style("height",function(){
+		return $(window).width()*0.729;
+	});
 	
+	d3.select("body").select("#header").style("width",function(){
+		return $(window).width();
+	});
+	
+	d3.select("body").select("#content1").style("width",function(){
+		return $(window).width()*0.7;
+	});
+	d3.select("body").select("#content1").style("height",function(){
+		return $(window).width()*0.7*0.729;
+	});
+	
+	d3.select("body").select("#menu").style("width",function(){
+		return $(window).width()*0.3;
+	});
+	d3.select("body").select("#menu").style("height",function(){
+		return $(window).width()*0.7*0.729;
+	});
+	
+	d3.select("body").select("#content2").style("width",function(){
+		return $(window).width();
+	});
+	d3.select("body").select("#teamA").style("width",function(){
+		return $(window).width()*0.25;
+	});
+	d3.select("body").select("#header_center").style("width",function(){
+		return $(window).width()*0.5;
+	});
+	d3.select("body").select("#teamB").style("width",function(){
+		return $(window).width()*0.25;
+	});
+	
+	// 축적 재설정
+	
+	var width = $("#slider").width();
+	
+	scaleX = d3.scale.linear().domain(FILED_X).range([30,$("#content1").width()*0.7*1.5]);
+	scaleY = d3.scale.linear().domain(FILED_Y).range([30,$("#content1").height()*0.7]);
+	scaleTimeline = d3.scale.linear().domain(PLAYTIME).range([0, width]);
+	
+	// 인터페이스 크기 재설정
+	timeline = d3.select("body").select("#timeline").attr().attr("width", width).attr("height", 20);
+	svg = d3.select("body").select("#main").attr("width", $("#content1").width()).attr("height", $("#content1").height());
+	
+	timeline.selectAll("rect").data(goalTime).attr("width", 3).attr("height", 10).attr("x", function(d) {
+		return scaleTimeline(timeslide(d.SHOT_TIME));
+	}).attr("y", 10).attr("fill", "red");
+
 }
 
 function resizefiled(){ // 경기장 표현
 	
-	var width = $("#slider").width();
+	var width = $("#content1").width();
 	
 	 svg.select("#field1").attr("x",30).attr("y",30)
 		.attr("height",width*0.729 - 60).attr("width",5);
@@ -389,45 +498,7 @@ function resizefiled(){ // 경기장 표현
 }
 
 $(window).resize(function() {
-	// 축적 재설정
-	
-	var width = $("#slider").width();
-	
-	scaleX = d3.scale.linear().domain(FILED_X).range([30,width*0.7*1.5]);
-	scaleY = d3.scale.linear().domain(FILED_Y).range([30,width*0.729*0.7]);
-	scaleTimeline = d3.scale.linear().domain(PLAYTIME).range([0, width]);
 	resizefiled();
-	// 인터페이스 크기 재설정
-	timeline = d3.select("body").select("#timeline").attr().attr("width", width).attr("height", 20);
-	var svg = d3.select("body").select("#main").attr("width", width).attr("height", width*0.729);
-	
-	timeline.selectAll("rect").data(goalTime).attr("width", 3).attr("height", 10).attr("x", function(d) {
-		return scaleTimeline(timeslide(d.SHOT_TIME));
-	}).attr("y", 10).attr("fill", "red");
+	resize_window();
 }); 
-function open_player_window(id) {
-	var newwindow = window.open("newwindow.html");
-	newwindow.id = id;
-	//newwindow.timeTable=timeTable;
-}
-var playState = true; //실행여부 ture면 실행, false면 일시정지
-playButton.click(function() {
-	$(this).attr("value", function() {
-		if (playState) {
-			playState=false;
-			start(slider.slider("value"));
-			return "stop";
-		} else
-		clearInterval(timerID);
-			playState=true;
-			return "play";
-	});
-});
-increasePlaySpeedButton.click(function() {
-	if (playSpeed <= 2) playSpeed = playSpeed + 0.1;
-	$("#playspeed").text(parseInt(playSpeed*100) + "%");
-}); 
-decreasePlaySpeedButton.click(function() {
-	if (playSpeed > 0.6) playSpeed = playSpeed - 0.1;
-	$("#playspeed").text(parseInt(playSpeed*100) + "%");
-});
+

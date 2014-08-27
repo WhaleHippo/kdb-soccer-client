@@ -13,6 +13,7 @@ var heatMapData = []; // 히트맵 데이터
 for (var i = 0; i < 15855; i++) {
 	heatMapData.push(d3.rgb(0,255,0));
 }
+
 heatMap.selectAll("rect").data(heatMapData).enter().append("rect").attr("fill", function(d) {
 	return d;
 }).attr("x", function(d, i) {
@@ -20,8 +21,6 @@ heatMap.selectAll("rect").data(heatMapData).enter().append("rect").attr("fill", 
 }).attr("y", function(d, i) {
 	return parseInt(i / 15) * 50;
 }).attr("height", 50).attr("width", 50); 
-
-
 
 $.get("http://147.47.206.13/meta/player", function(d) {
 	playerData=d;
@@ -40,7 +39,7 @@ for(var i=0;i<10;i++){
 	data.push(50);
 }
 
-slider = $("#slider").slider({
+slider = $("#slider1").slider({
 	orientation: "horizontal",
 	min : 0,
 	max : (timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME,
@@ -50,16 +49,17 @@ slider = $("#slider").slider({
 	slide : function(e,ui){change(ui);}
 });
 
-var svg = d3.select("body").select("#playerstate").attr("width", $("#slider").width()).attr("height", 100);
 
-svg.selectAll("rect").data(data)
+
+var distanceField = d3.select("body").select("#distance").attr("width", $("#slider1").width()).attr("height", 100); // 선수들의 이동거리 표시
+
+distanceField.selectAll("rect").data(data)
 				.enter()
 				.append("rect")
 				.attr("height", function(d){return d;})
-				.attr("width",function(d){return $("#slider").width()/10;})
+				.attr("width",function(d){return $("#slider1").width()/10;})
 				.attr("y", function(d) {return 100-d;})
-				.attr("x",function(d,i){return $("#slider").width()*i/10;});
-
+				.attr("x",function(d,i){return $("#slider1").width()*i/10;});
 
 function change(ui) {
 	
@@ -103,30 +103,54 @@ function change(ui) {
 			}).attr("height", 5).attr("width", 5);
 		});
 
-		var distanceArray=[];
-		distance_request(timeLeft,timeRight,distanceArray,(timeRight-timeLeft)/10);
-		
+		distance_request(timeLeft,timeRight);
+		possession_request(timeLeft,timeRight);
 	}, 500);
 	
+	$("#time").text(parseInt(ui.values[0]/600) + " : " + parseInt((ui.values[0]%600)/10) + " ~ " + parseInt(ui.values[1]/600) + " : " + parseInt((ui.values[1]%600)/10));
 
 }
-function distance_request(starttime, endtime, distanceArray, dis) {
-	$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=" + starttime + "&end_time=" + starttime + dis + "&name=" + id, function(d) {
-		distanceArray = distanceArray.concat(d);
-		console.log(d[0].SUM);
-	}).done(function() {
-		if (starttime < endtime) {
-			distance_request(starttime + dis, endtime, distanceArray, dis);
-		} else {
-			svg.selectAll("rect").data(distanceArray).transition().attr("height", function(d) {
-				return d.SUM * 10;
-			}).attr("width", function(d) {
-				return $("#slider").width() / 10;
-			}).attr("y", function(d) {
-				return 100 - d.SUM * 10;
-			}).attr("x", function(d, i) {
-				return $("#slider").width() * i / 10;
-			});
-		}
+
+function distance_request(starttime, endtime) {
+	$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=" + starttime + "&end_time=" + endtime + "&name=" + id, function(d) {
+		distanceField.selectAll("rect").data(d).transition().attr("height", function(d) {
+			return d.SUM * 100;
+		}).attr("width", function(d) {
+			return $("#slider1").width() / 10;
+		}).attr("y", function(d) {
+			return 100 - d.SUM * 100;
+		}).attr("x", function(d, i) {
+			return $("#slider1").width() * i / 10;
+		});
 	});
 }
+
+function possession_request(starttime, endtime){
+	$.get("http://147.47.206.13/analysis/possession/player?start_time="+starttime+"&end_time="+endtime, function(d){
+		var sum = 0;
+		var possession;
+		for(var i = 0 ; i < d.length ; i++){
+			if(d[i].PID == id) {
+				possession = d[i].POSSESS;
+			}
+			sum = sum + d[i].POSSESS;
+		}
+		$("#possession").text(possession*100/sum + "%");
+	});
+}
+
+$("#analysis").click(function(){
+	
+	$.get("http://147.47.206.13/analysis/pass/distance?min="+$("#min").val()+"&max="+$("#max").val(),function(d){
+		for(var i = 0 ; i < d.length ; i++){
+			if(d[i].PID == id && d[i].STATUS == "miss"){
+				console.log(d[i].NUM);
+				d3.select("#pass").select("#miss").attr("x",0).attr("y",100-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
+			}
+			if(d[i].PID == id && d[i].STATUS == "pass"){
+				console.log(d[i].NUM);
+				d3.select("#pass").select("#success").attr("x",10).attr("y",100-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
+			}
+		}
+	});
+});
