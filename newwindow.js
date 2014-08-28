@@ -4,7 +4,6 @@ var playerData = [];
 var slider;
 var timeLeft = 0;// 왼쪽 슬라이더의 시간
 var timeRight = 0;// 오른쪽 슬라이더의 시간
-var heatMap = d3.select("body").select("#heatmap").attr("width", 750).attr("height", 550);// 히트맵을 표현할 svg
 var timerHeatMap; // 히트맵 로딩에 대한 타이머
 
 $("#playerImg").attr("src",id+".jpg");
@@ -14,13 +13,7 @@ for (var i = 0; i < 15855; i++) {
 	heatMapData.push(d3.rgb(0,255,0));
 }
 
-heatMap.selectAll("rect").data(heatMapData).enter().append("rect").attr("fill", function(d) {
-	return d;
-}).attr("x", function(d, i) {
-	return (i % 15) * 50;
-}).attr("y", function(d, i) {
-	return parseInt(i / 15) * 50;
-}).attr("height", 50).attr("width", 50); 
+d3.select("#heatmap").selectAll("rect").data(heatMapData).enter().append("rect");
 
 $.get("http://147.47.206.13/meta/player", function(d) {
 	playerData=d;
@@ -36,7 +29,7 @@ function slidetime(slideValue) {// 슬라이드의 값을 실제의 시간으로
 
 var data=[];
 for(var i=0;i<10;i++){
-	data.push(50);
+	data.push(0);
 }
 
 slider = $("#slider1").slider({
@@ -44,22 +37,18 @@ slider = $("#slider1").slider({
 	min : 0,
 	max : (timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME,
 	step : 10,
-	range : 15000,
+	range : true,
 	values : [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME],
 	slide : function(e,ui){change(ui);}
 });
 
-
-
-var distanceField = d3.select("body").select("#distance").attr("width", $("#slider1").width()).attr("height", 100); // 선수들의 이동거리 표시
-
-distanceField.selectAll("rect").data(data)
+d3.select("#distance").selectAll("rect").data(data)
 				.enter()
 				.append("rect")
-				.attr("height", function(d){return d;})
-				.attr("width",function(d){return $("#slider1").width()/10;})
-				.attr("y", function(d) {return 100-d;})
-				.attr("x",function(d,i){return $("#slider1").width()*i/10;});
+				.attr("height", function(d){return d*20;})
+				.attr("width",function(d){return $("#distance").width()/10;})
+				.attr("y", function(d) {return $("#distance").height()-d*20;})
+				.attr("x",function(d,i){return $("#distance").width()*i/10;});
 
 function change(ui) {
 	
@@ -92,15 +81,15 @@ function change(ui) {
 				}
 			}
 		}).done(function() {
-			heatMap.selectAll("rect").data(heatMapData)
+			d3.select("#heatmap").selectAll("rect").data(heatMapData)
 			.transition()
 			.attr("fill", function(d) {
 				return d;
 			}).attr("x", function(d, i) {
-				return (i % 151) * 5;
+				return (i % 151) * $("#heatmap").width()/151;
 			}).attr("y", function(d, i) {
-				return parseInt(i / 151) * 5;
-			}).attr("height", 5).attr("width", 5);
+				return parseInt(i / 151) * $("#heatmap").height()/105;
+			}).attr("height", $("#heatmap").height()/105).attr("width", $("#heatmap").width()/151);
 		});
 
 		distance_request(timeLeft,timeRight);
@@ -113,14 +102,14 @@ function change(ui) {
 
 function distance_request(starttime, endtime) {
 	$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=" + starttime + "&end_time=" + endtime + "&name=" + id, function(d) {
-		distanceField.selectAll("rect").data(d).transition().attr("height", function(d) {
+		d3.select("#distance").selectAll("rect").data(d).transition().attr("height", function(d) {
 			return d.SUM * 100;
 		}).attr("width", function(d) {
-			return $("#slider1").width() / 10;
+			return $("#distance").width() / 10;
 		}).attr("y", function(d) {
-			return 100 - d.SUM * 100;
+			return $("#distance").height() - d.SUM * 100;
 		}).attr("x", function(d, i) {
-			return $("#slider1").width() * i / 10;
+			return $("#distance").width() * i / 10;
 		});
 	});
 }
@@ -144,12 +133,10 @@ $("#analysis").click(function(){
 	$.get("http://147.47.206.13/analysis/pass/distance?min="+$("#min").val()+"&max="+$("#max").val(),function(d){
 		for(var i = 0 ; i < d.length ; i++){
 			if(d[i].PID == id && d[i].STATUS == "miss"){
-				console.log(d[i].NUM);
-				d3.select("#pass").select("#miss").attr("x",0).attr("y",100-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
+				d3.select("#pass").select("#miss").attr("x",0).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
 			}
 			if(d[i].PID == id && d[i].STATUS == "pass"){
-				console.log(d[i].NUM);
-				d3.select("#pass").select("#success").attr("x",10).attr("y",100-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
+				d3.select("#pass").select("#success").attr("x",20).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
 			}
 		}
 	});

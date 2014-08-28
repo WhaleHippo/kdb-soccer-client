@@ -1,35 +1,52 @@
 <html>
 	<head>
-		<title>new window</title>
+		<title>Layout</title>
 	</head>
 	<body>
-		<p id="playerid"></p>
-		<img id = "playerImg" src="1.jpg"/>
 		
-		<svg id="distance"></svg>
+		<div id="container" style="width:600px;">
+			<div id="header" style="background-color:#FFA500;width:600px;">
+				<div id="img" style="background-color:blue;width:250px;height:250px;float:left;text-align:center;">
+					<img id = "playerImg" src="1.jpg" width="250" height="250"/>
+				</div>
+				
+				<div id="state" style="background-color:red;width:350px;height:250px;float:left;text-align:center;">state
+					<text id="playerid">name</text><br />
+					<text id = "possession">possession</text><br />
+			<!--	<text id = "pass">pass</text><br /> 	-->
 		
-		<p id = "possession">123</p>
-		
-		<div id="slider1"></div>
-		<p id = "time">123</p>
-		
-		<svg id="heatmap"></svg>
-		
-		<svg id = "pass" width = "100" height = "100">
-			<rect id="miss" fill = "red"></rect>
-			<rect id="success" fill = "red"></rect>
-			<text></text>
-		</svg>
-		 
-		<input type="text" id="min" value="min" />
-		<input type="text" id ="max" value="max" />
-		<input type="button" id ="analysis" value="analysis" />
+					<svg id = "pass" style="background-color:green" width = "350" height = "100">
+						<rect id="miss" fill = "red"></rect>
+						<rect id="success" fill = "red"></rect>
+						<text></text>
+					</svg>
+					<input type="text" id="min" value="min" style="width: 75 ; text-align : center;"/>
+					<input type="text" id ="max" value="max" style="width: 75 ; text-align : center;"/>
+					<input type="button" id ="analysis" value="analysis" />
+					
+				</div>
+			</div>
+			<div id="content1" style="background-color:#EEEEEE;height:300px;float:left;width:400px;text-align:center;" >
+				heatmap
+				<svg id="heatmap" height = "280" width = "400"></svg>
+			</div>
+			<div id="content2" style="background-color:#FFD700;height:300px;width:200px;float:left;text-align:center;">
+				distance
+				<svg id="distance" height = "280" width = "200"></svg>
+			</div>
+
+			
+			<div style="background-color:#FFA500;clear:both;width: 600px;">
+				<div id="slider1" style="width: 600px;"></div>
+				<p id = "time">123</p>
+				
+			</div>
+		</div>
 		
 		<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 		<script src="http://d3js.org/d3.v3.min.js"></script>
 		<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
 		<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
-		<link rel="stylesheet" href="/resources/demos/style.css">
 		<script src = "newwindow.js"></script>
 	</body>
 </html>
