@@ -98,6 +98,7 @@ var buffer = {
 
 			data_reqeust(index);
 			timerRequest = setInterval(function() {//새로운 리퀘스트 요청
+				$("#playbutton").prop("disabled", false);
 				data_reqeust(++index);
 			}, 5000);
 			return this.data[time - this.startTime];
@@ -174,7 +175,7 @@ function data_reqeust(index) {
 		console.log(index);
 		buffer.input(d);
 	}).done(function() {
-		$("#playbutton").prop("disabled", false);
+		
 		if ( index == 0) { // 첫호출시
 			
 			var width = $("#slider").width();
@@ -490,7 +491,7 @@ $("#check2").click(function() {
 		});
 		timerDistance = setInterval(function(){
 			$.get("http://147.47.206.13/analysis/run_distance?time="+slidetime(slider.slider("value")), function(d) {
-				d3.select("#distance").selectAll("rect").data(d).attr("y",function(d){return 200-d.SUM*20;}).attr("x",function(d,i){return i*1;}).attr("width",15).attr("height",function(d){return d.SUM*20;});
+				d3.select("#distance").selectAll("rect").data(d).attr("y",function(d){return 200-d.SUM*20;}).attr("x",function(d,i){return i*15;}).attr("width",15).attr("height",function(d){return d.SUM*20;});
 			});
 		},10000);
 		showDistance=true;

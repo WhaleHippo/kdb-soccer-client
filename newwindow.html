@@ -1,24 +1,27 @@
 <html>
 	<head>
-		<title>Layout</title>
+		<title>Player</title>
 	</head>
 	<body>
 		
 		<div id="container" style="width:600px;">
 			<div id="header" style="background-color:#FFA500;width:600px;">
-				<div id="img" style="background-color:blue;width:250px;height:250px;float:left;text-align:center;">
+				<div id="img" style="background-color:blue;width:250px;height:250px;float:left;">
 					<img id = "playerImg" src="1.jpg" width="250" height="250"/>
 				</div>
 				
-				<div id="state" style="background-color:red;width:350px;height:250px;float:left;text-align:center;">state
+				<div id="state" style="width:350px;height:250px;float:left;">
 					<text id="playerid">name</text><br />
 					<text id = "possession">possession</text><br />
-			<!--	<text id = "pass">pass</text><br /> 	-->
+					<text id = "passscore">pass</text><br />
 		
-					<svg id = "pass" style="background-color:green" width = "350" height = "100">
+					<svg id = "pass" width = "350" height = "100">
 						<rect id="miss" fill = "red"></rect>
-						<rect id="success" fill = "red"></rect>
-						<text></text>
+						<rect id="success" fill = "blue"></rect>
+						<text x=125 y=100>Miss</text>
+						<text x=175 y=100>Pass</text>
+						<text id="misstag"></text>
+						<text id="passtag"></text>
 					</svg>
 					<input type="text" id="min" value="min" style="width: 75 ; text-align : center;"/>
 					<input type="text" id ="max" value="max" style="width: 75 ; text-align : center;"/>

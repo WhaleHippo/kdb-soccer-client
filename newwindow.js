@@ -124,7 +124,7 @@ function possession_request(starttime, endtime){
 			}
 			sum = sum + d[i].POSSESS;
 		}
-		$("#possession").text(possession*100/sum + "%");
+		$("#possession").text("possession : " + possession*100/sum + "%");
 	});
 }
 
@@ -133,11 +133,14 @@ $("#analysis").click(function(){
 	$.get("http://147.47.206.13/analysis/pass/distance?min="+$("#min").val()+"&max="+$("#max").val(),function(d){
 		for(var i = 0 ; i < d.length ; i++){
 			if(d[i].PID == id && d[i].STATUS == "miss"){
-				d3.select("#pass").select("#miss").attr("x",0).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
+				d3.select("#pass").select("#miss").attr("x",125).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",50).attr("height",d[i].NUM*3);
+				d3.select("#pass").select("#misstag").attr("x",125).attr("y",$("#pass").height()-d[i].NUM*3).text(d[i].NUM);
 			}
 			if(d[i].PID == id && d[i].STATUS == "pass"){
-				d3.select("#pass").select("#success").attr("x",20).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",10).attr("height",d[i].NUM*3);
+				d3.select("#pass").select("#success").attr("x",175).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",50).attr("height",d[i].NUM*3);
+				d3.select("#pass").select("#passtag").attr("x",175).attr("y",$("#pass").height()-d[i].NUM*3).text(d[i].NUM);
 			}
 		}
+		$("#passscore").text(100*d3.select("#successs").attr("y")/(d3.select("#miss").attr("y")+d3.select("#successs").attr("y")));
 	});
 });
