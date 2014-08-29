@@ -24,7 +24,7 @@ var timerPass;
 var timerHeatmap = [];
 
 var heatMapData = []; // 히트맵 표현을 위한 더미 데이터
-for (var i = 0; i < 15855; i++) {
+for (var i = 0; i < 61*40; i++) {
 	heatMapData.push(d3.rgb(0,255,0));
 }
 d3.select("#heatmap").selectAll("rect").data(heatMapData).enter().append("rect");
@@ -32,7 +32,7 @@ d3.select("#heatmap").selectAll("rect").data(heatMapData).enter().append("rect")
 var loadingState;//데이터 로딩 정도를 나타내는 것 d3.select("body").select("#loading").attr().attr("width", width).attr("height", 20);
 
 var svg = d3.select("#main");
-var timeline;
+var timeline = d3.select("#timeline");
 var ds;
 
 var showPossetion = false;
@@ -52,9 +52,7 @@ var buffer = {
 		this.data = this.data.concat(d);
 		this.startTime = this.data[0][0].FRAME_TS;
 		this.endTime = this.data[this.data.length - 1][0].FRAME_TS;
-		//alert("data : " + this.data.length);
 		if (this.data.length >= this.bufferSize) {// 이미 큐에 1000개의 데이터가 있는 경우
-			//alert("input stop!");
 			clearInterval(timerRequest);// 리퀘스트 중지
 		}
 		loadingState.select("rect").attr("x",(timeslide(this.startTime)*$("#slider").width()/36066)).attr("width",(timeslide(this.endTime)-timeslide(this.startTime))*$("#slider").width()/36066);
@@ -107,7 +105,6 @@ var buffer = {
 };
 
 $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타데이터를 가져오는 함수. 제일 먼저 실행된다.
-	//alert("!");
 	timeTable = d;
 }).done(function() {
 	slider = $("#slider").slider({
@@ -124,9 +121,7 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 	
 	PLAYTIME = [0,(timeTable.length - 1) * 100 + timeTable[timeTable.length - 1].END_TIME - timeTable[timeTable.length - 1].START_TIME];
 	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
-	
-	timeline = d3.select("body").select("#timeline").attr("width", $("#slider").width()).attr("height", 20);
-	
+
 	loadingState = d3.select("body").select("#loading").attr("width", $("#slider").width()).attr("height", 20);
 	
 	
@@ -179,11 +174,7 @@ function data_reqeust(index) {
 		if ( index == 0) { // 첫호출시
 			
 			var width = $("#slider").width();
-			
-
 			resizefiled();
-			
-			svg = d3.select("body").select("#main").attr("width", $("#content1").width()).attr("height", $("#content1").height());
 
 			ds = svg.selectAll(".test").data(buffer.returnData(slidetime(0))).attr("points", function(d) {
 				return lotation(scaleX(d.PX), scaleY(d.PY), theta(d.VX, d.VY));
@@ -465,12 +456,28 @@ $("#check1").click(function() {
 	}
 	else{
 		$.get("http://147.47.206.13/analysis/possession/team?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){
-			d3.select("#possession").selectAll("rect").data(d).attr("y",function(d){return 200-d.POSSESS*0.1;}).attr("x",function(d,i){return 40+i*40;}).attr("width",40).attr("height",function(d){return d.POSSESS*0.1;});
+			for(var i =0;i<d.length;i++){
+				if(d[i].TEAM=="A"){
+					d3.select("#possession").select("#A").attr("y",200-d[i].POSSESS*0.1).attr("x",function(d,i){return 40;}).attr("width",40).attr("height", d[i].POSSESS*0.1);
+				}
+				else if(d[i].TEAM=="B"){
+					d3.select("#possession").select("#B").attr("y",200-d[i].POSSESS*0.1).attr("x",function(d,i){return 40+40;}).attr("width",40).attr("height", d[i].POSSESS*0.1);
+				}
+			}
+			//d3.select("#possession").selectAll("rect").data(d).attr("y",function(d){return 200-d.POSSESS*0.1;}).attr("x",function(d,i){return 40+i*40;}).attr("width",40).attr("height",function(d){return d.POSSESS*0.1;});
 		});
 		
 		timerBallPossession = setInterval(function(){
 		$.get("http://147.47.206.13/analysis/possession/team?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){
-			d3.select("#possession").selectAll("rect").data(d).attr("y",function(d){return 200-d.POSSESS*0.1;}).attr("x",function(d,i){return 40+i*40;}).attr("width",40).attr("height",function(d){return d.POSSESS*0.1;});
+			for(var i =0;i<d.length;i++){
+				if(d[i].TEAM=="A"){
+					
+					d3.select("#possession").select("#A").attr("y",200-d[i].POSSESS*0.1).attr("x",function(d,i){return 40;}).attr("width",40).attr("height", d[i].POSSESS*0.1);
+				}
+				else if(d[i].TEAM=="B"){
+					d3.select("#possession").select("#B").attr("y",200-d[i].POSSESS*0.1).attr("x",function(d,i){return 40+40;}).attr("width",40).attr("height", d[i].POSSESS*0.1);
+				}
+			}
 		});
 		},10000);
 		showPossetion=true;
@@ -531,13 +538,13 @@ $("#check6").click(function() {
 	else {
 		$.get("http://147.47.206.13/analysis/heatmap/total?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){	
 			var i;
-			for ( i = 0; i < 15855; i++) { // 15855 = 105*151
+			for ( i = 0; i < 61*40; i++) { // 15855 = 105*151
 				heatMapData[i] = d3.rgb(0, 255, 0);
 			}
 
 			for ( i = 0; i < d.length; i++) {
 				if (d[i].CELL_Y != null && d[i].CELL_X != null && d[i].CELL_Y > -1) {
-					heatMapData[151 * d[i].CELL_Y + d[i].CELL_X + 75] = d3.rgb(900 * d[i].TIME * d[i].TIME, 255 - 900 * d[i].TIME * d[i].TIME, 0);
+					heatMapData[61 * d[i].CELL_Y + d[i].CELL_X + 30] = d3.rgb(0.5*d[i].TIME * d[i].TIME, 255 - 0.5*d[i].TIME * d[i].TIME, 0);
 				}
 			}
 			
@@ -546,21 +553,21 @@ $("#check6").click(function() {
 			.attr("fill", function(d) {
 				return d;
 			}).attr("x", function(d, i) {
-				return (i % 151) * $("#heatmap").width()/151;
+				return (i % 61) * $("#heatmap").width()/61;
 			}).attr("y", function(d, i) {
-				return parseInt(i / 151) * $("#heatmap").height()/105;
-			}).attr("height", $("#heatmap").height()/105).attr("width", $("#heatmap").width()/151);
+				return parseInt(i / 61) * $("#heatmap").height()/40;
+			}).attr("height", $("#heatmap").height()/40).attr("width", $("#heatmap").width()/61);
 		});
 		timerHeatmap = setInterval(function(){
 			$.get("http://147.47.206.13/analysis/heatmap/total?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){	
 				var i;
-				for ( i = 0; i < 15855; i++) { // 15855 = 105*151
+				for ( i = 0; i < 61*40; i++) { // 15855 = 105*151
 					heatMapData[i] = d3.rgb(0, 255, 0);
 				}
 	
 				for ( i = 0; i < d.length; i++) {
 					if (d[i].CELL_Y != null && d[i].CELL_X != null && d[i].CELL_Y > -1) {
-						heatMapData[151 * d[i].CELL_Y + d[i].CELL_X + 75] = d3.rgb(900 * d[i].TIME * d[i].TIME, 255 - 900 * d[i].TIME * d[i].TIME, 0);
+						heatMapData[61 * d[i].CELL_Y + d[i].CELL_X + 30] = d3.rgb(0.5*d[i].TIME * d[i].TIME, 255 - 0.5*d[i].TIME * d[i].TIME, 0);
 					}
 				}
 				
@@ -569,16 +576,15 @@ $("#check6").click(function() {
 				.attr("fill", function(d) {
 					return d;
 				}).attr("x", function(d, i) {
-					return (i % 151) *$("#heatmap").width()/151;
+					return (i % 61) * $("#heatmap").width()/61;
 				}).attr("y", function(d, i) {
-					return parseInt(i / 151) * $("#heatmap").height()/105;
-				}).attr("height", $("#heatmap").height()/105).attr("width", $("#heatmap").width()/151);
+					return parseInt(i / 61) * $("#heatmap").height()/40;
+				}).attr("height", $("#heatmap").height()/40).attr("width", $("#heatmap").width()/61);
 			});
 		},100000);
 		showHeatmap=true;
 	}
 });
-
 
 function resizefiled(){ // 경기장 표현
 	
@@ -602,9 +608,3 @@ function resizefiled(){ // 경기장 표현
 	 svg.select("#field0").attr("cx",width*0.5).attr("cy",width*0.729*0.5).attr("r",width*0.15);
 	 
 }
-
-$(window).resize(function() {
-	resizefiled();
-
-}); 
-

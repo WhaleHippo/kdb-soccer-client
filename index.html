@@ -8,7 +8,7 @@
 			<div id="header" style="background-color:#FFA500;width:600px;">
 				<div id="teamA" style="background-color:blue;width:150px;height:40px;float:left;text-align:center;">A</div>
 				
-				<div id="header_center" style="width:300px;height:40px;float:left;text-align:center;"><text id="time">0 ; 0</text>
+				<div id="header_center" style="width:300px;height:40px;float:left;text-align:center;"><text id="time">0 : 0</text>
 					<br />
 					<text id = "score">0 : 0</text>
 				</div>
@@ -87,7 +87,7 @@
 				<svg id = "loading" height = "10">
 					<rect fill="blue" width = "10" height = "10" x="0" y="0"></rect>
 				</svg>
-				<svg id = "timeline"></svg>
+				<svg id = "timeline" style="width: 600; height : 20"></svg>
 				<div style="background-color:#FFD700;height:220px;width:240px;float:left;text-align:center;">
 					distance
 					<svg id = "distance" width = "240" height = "200">	
@@ -101,7 +101,7 @@
 				<div style="background-color:#FFA500;height:220px;width:160px;float:left;text-align:center;">
 					possession
 					<svg id = "possession" width = "160" height = "200">	
-					<rect fill="blue"></rect><rect fill="red"></rect>
+					<rect fill="blue" id="A"></rect><rect fill="red" id="B"></rect>
 					<text x="40" y = "200">teamA</text><text x="80" y = "200">teamB</text>
 					</svg>
 				</div>

@@ -9,7 +9,7 @@ var timerHeatMap; // 히트맵 로딩에 대한 타이머
 $("#playerImg").attr("src",id+".jpg");
 
 var heatMapData = []; // 히트맵 데이터
-for (var i = 0; i < 15855; i++) {
+for (var i = 0; i < 61*40; i++) {
 	heatMapData.push(d3.rgb(0,255,0));
 }
 
@@ -71,13 +71,13 @@ function change(ui) {
 		$.get("http://147.47.206.13/analysis/heatmap?start_time=" + timeLeft +"&end_time=" + timeRight+ "&name=" + id, function(d) {
 			//alert(d);
 			var i;
-			for ( i = 0; i < 15855; i++) { // 15855 = 105*151
+			for ( i = 0; i < 61*40; i++) {
 				heatMapData[i] = d3.rgb(0, 255, 0);
 			}
 
 			for ( i = 0; i < d.length; i++) {
 				if (d[i].CELL_Y != null && d[i].CELL_X != null && d[i].CELL_Y > -1) {
-					heatMapData[151 * d[i].CELL_Y + d[i].CELL_X + 75] = d3.rgb(900 * d[i].TIME * d[i].TIME, 255 - 900 * d[i].TIME * d[i].TIME, 0);
+					heatMapData[61 * d[i].CELL_Y + d[i].CELL_X + 30] = d3.rgb(30*d[i].TIME * d[i].TIME, 255 - 30*d[i].TIME * d[i].TIME, 0);
 				}
 			}
 		}).done(function() {
@@ -86,10 +86,10 @@ function change(ui) {
 			.attr("fill", function(d) {
 				return d;
 			}).attr("x", function(d, i) {
-				return (i % 151) * $("#heatmap").width()/151;
+				return (i % 61) * $("#heatmap").width()/61;
 			}).attr("y", function(d, i) {
-				return parseInt(i / 151) * $("#heatmap").height()/105;
-			}).attr("height", $("#heatmap").height()/105).attr("width", $("#heatmap").width()/151);
+				return parseInt(i / 61) * $("#heatmap").height()/40;
+			}).attr("height", $("#heatmap").height()/40).attr("width", $("#heatmap").width()/61);
 		});
 
 		distance_request(timeLeft,timeRight);
@@ -103,11 +103,11 @@ function change(ui) {
 function distance_request(starttime, endtime) {
 	$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=" + starttime + "&end_time=" + endtime + "&name=" + id, function(d) {
 		d3.select("#distance").selectAll("rect").data(d).transition().attr("height", function(d) {
-			return d.SUM * 100;
+			return d.SUM * 250;
 		}).attr("width", function(d) {
 			return $("#distance").width() / 10;
 		}).attr("y", function(d) {
-			return $("#distance").height() - d.SUM * 100;
+			return $("#distance").height() - d.SUM * 250;
 		}).attr("x", function(d, i) {
 			return $("#distance").width() * i / 10;
 		});
@@ -133,14 +133,13 @@ $("#analysis").click(function(){
 	$.get("http://147.47.206.13/analysis/pass/distance?min="+$("#min").val()+"&max="+$("#max").val(),function(d){
 		for(var i = 0 ; i < d.length ; i++){
 			if(d[i].PID == id && d[i].STATUS == "miss"){
-				d3.select("#pass").select("#miss").attr("x",125).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",50).attr("height",d[i].NUM*3);
-				d3.select("#pass").select("#misstag").attr("x",125).attr("y",$("#pass").height()-d[i].NUM*3).text(d[i].NUM);
+				d3.select("#pass").select("#miss").attr("x",125).attr("y",$("#pass").height()-d[i].NUM).attr("width",50).attr("height",d[i].NUM);
+				d3.select("#pass").select("#misstag").attr("x",125).attr("y",$("#pass").height()-d[i].NUM).text(d[i].NUM);
 			}
 			if(d[i].PID == id && d[i].STATUS == "pass"){
-				d3.select("#pass").select("#success").attr("x",175).attr("y",$("#pass").height()-d[i].NUM*3).attr("width",50).attr("height",d[i].NUM*3);
-				d3.select("#pass").select("#passtag").attr("x",175).attr("y",$("#pass").height()-d[i].NUM*3).text(d[i].NUM);
+				d3.select("#pass").select("#success").attr("x",175).attr("y",$("#pass").height()-d[i].NUM).attr("width",50).attr("height",d[i].NUM);
+				d3.select("#pass").select("#passtag").attr("x",175).attr("y",$("#pass").height()-d[i].NUM).text(d[i].NUM);
 			}
 		}
-		$("#passscore").text(100*d3.select("#successs").attr("y")/(d3.select("#miss").attr("y")+d3.select("#successs").attr("y")));
 	});
 });
