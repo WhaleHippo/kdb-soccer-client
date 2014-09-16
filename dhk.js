@@ -3,15 +3,15 @@ var slider;
 
 var playSpeed = 1;//재생속도
 
-var FILED_X = [-52490,52490];
-var FILED_Y = [0,33960*1.7];
+var FILED_X = [-33939,33941];
+var FILED_Y = [0,52489];
 var PLAYTIME = [0,1000];
 
 var scoreA = 0;
 var scoreB = 0;
 
-var scaleX = d3.scale.linear().domain(FILED_X).range([0,$("#main").width()]);
-var scaleY = d3.scale.linear().domain(FILED_Y).range([0,$("#main").height()]);
+var scaleX = d3.scale.linear().domain(FILED_X).range([20,$("#main").width()-20]);
+var scaleY = d3.scale.linear().domain(FILED_Y).range([20,$("#main").height()-20]);
 var scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]); // 정의역 : 0~전체게임시간
 var shotTime = [];
 var goalTime = [];
@@ -21,10 +21,10 @@ var timerSlider; // 슬라이드의 연속적인 움짐임을 제어하기 위�
 var timerDistance; // 선수들의 거리를 가져오는 것에 대한 타이머
 var timerBallPossession; // 공의 점유율에 대한 타이머
 var timerPass;
-var timerHeatmap = [];
+var timerHeatmap;
 
 var heatMapData = []; // 히트맵 표현을 위한 더미 데이터
-for (var i = 0; i < 61*40; i++) {
+for (var i = 0; i < 15000; i++) {
 	heatMapData.push(d3.rgb(0,255,0));
 }
 d3.select("#heatmap").selectAll("rect").data(heatMapData).enter().append("rect");
@@ -437,6 +437,10 @@ $("#playbutton").click(function() {
 			playState=true;
 			return "play";
 	});
+	
+	playDistance();
+	playPass();
+	playPossession();
 });
 $("#increase").click(function() {
 	if (playSpeed <= 2) playSpeed = playSpeed + 0.1;
@@ -446,7 +450,7 @@ $("#decrease").click(function() {
 	if (playSpeed > 0.6) playSpeed = playSpeed - 0.1;
 	$("#playspeed").text("playspeed : "+parseInt(playSpeed*100) + "%");
 });
-
+/*
 $("#check1").click(function() {
 	if(showPossetion){
 		clearInterval(timerBallPossession);
@@ -582,27 +586,28 @@ $("#check6").click(function() {
 		},100000);
 		showHeatmap=true;
 	}
-});
+});*/
 
 function resizefiled(){ // 경기장 표현
 	
-	var width = $("#content1").width();
+	var width = $("#main").width();
+	var height = $("#main").height();
 	
-	 svg.select("#field1").attr("x",30).attr("y",30)
-		.attr("height",width*0.729 - 60).attr("width",5);
+	 svg.select("#field1").attr("x",20).attr("y",20)
+		.attr("height",height - 40).attr("width",5);
 		
-	 svg.select("#field2").attr("x",30).attr("y",30)
-		.attr("height",5).attr("width",width -60);
+	 svg.select("#field2").attr("x",20).attr("y",20)
+		.attr("height",5).attr("width",width -40);
 		
-	 svg.select("#field3").attr("x",width-30).attr("y",30)
-		.attr("height",width*0.729 - 55).attr("width",5);
+	 svg.select("#field3").attr("x",width-20).attr("y",20)
+		.attr("height",height - 35).attr("width",5);
 	 
-	 svg.select("#field4").attr("x",30).attr("y",width*0.729-30)
-		.attr("height",5).attr("width",width -60);
+	 svg.select("#field4").attr("x",20).attr("y",height-20)
+		.attr("height",5).attr("width",width -40);
 		
-	 svg.select("#field5").attr("x",width*0.5).attr("y",30)
-		.attr("height",width*0.729 -60).attr("width",5);
+	 svg.select("#field5").attr("x",width*0.5).attr("y",20)
+		.attr("height",height -40).attr("width",5);
 	
-	 svg.select("#field0").attr("cx",width*0.5).attr("cy",width*0.729*0.5).attr("r",width*0.15);
+	 svg.select("#field0").attr("cx",width*0.5).attr("cy",height*0.5).attr("r",width*0.09);
 	 
 }

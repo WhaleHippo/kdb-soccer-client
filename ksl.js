@@ -6,28 +6,44 @@ var fnGenRunDistanceConfigLayer1 = function (input) {
 	        columns: input,
 	        type : 'pie',
 	        onclick: function (d, i) {
+	        	clearInterval(timerDistance);
 	        	distance_Layer=2;
 	        	if(d.index==0){ // A팀 클릭
-	        		stack_run_distance.push(config1_run_distance);
 	        		$.get("http://147.47.206.13:4730/analysis/run_distance_team?start_time=107530&end_time="+slidetime(slider.slider("value"))+"&team=%27A%27",function(data){
 	        			config2_run_distance = fnGenRunDistanceConfigLayer2(
 								[ ['distance', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM] ], 
 		        			    ['Nick Gertje', 'Dennis Dotterweich', 'Niklas Waezlein', 'Wili Sommer', 'Philipp Harlass', 'Roman Hartleb', 'Erik Engelhardt', 'Sandro Schneider']
 						);
-	        			c3.generate(config2_run_distance);
+	        			chart2_distance = c3.generate(config2_run_distance);
 	        		});
-	        		
+	        		timerDistance = setInterval(function(){
+		        		$.get("http://147.47.206.13:4730/analysis/run_distance_team?start_time=107530&end_time="+slidetime(slider.slider("value"))+"&team=%27A%27",function(data){
+		        			chart2_distance.load({
+		        				columns: [
+			        				['distance', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM] 
+			        			]
+		        			});
+		        		});
+	        		},10000);
 	        	}
 	        	else if(d.index==1){ // B팀 클릭
-	        		stack_run_distance.push(config1_run_distance);
 	        		
 	        		$.get("http://147.47.206.13:4730/analysis/run_distance_team?start_time=107530&end_time="+slidetime(slider.slider("value"))+"&team=%27B%27",function(data){
 	        			config2_run_distance = fnGenRunDistanceConfigLayer2(
 								[ ['distance', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM] ], 
 		        			    ['Leon Krapf', 'Kevin Baer', 'Luca Ziegler', 'Ben Mueller', 'Vale Reitstetter', 'Christopher Lee', 'Leon Heinze', 'Leo Langhans']
 						);
-	        			c3.generate(config2_run_distance);
+	        			chart2_distance = c3.generate(config2_run_distance);
 	        		});
+	        		timerDistance = setInterval(function(){
+		        		$.get("http://147.47.206.13:4730/analysis/run_distance_team?start_time=107530&end_time="+slidetime(slider.slider("value"))+"&team=%27B%27",function(data){
+		        			chart2_distance.load({
+		        				columns: [
+			        				['distance', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM] 
+			        			]
+		        			});
+		        		});
+	        		},10000);
 	        		
 	        	}
 			}
@@ -42,30 +58,31 @@ var fnGenRunDistanceConfigLayer2 = function (dats, cats) {
 	        columns: dats,
 	        type: 'bar',
 	        onclick: function (d, i) {
+	        	clearInterval(timerDistance);
 	        	distance_Layer=3;
 	        	console.log("Bar clicked");
 	        	
 	        	$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=107530&end_time="+slidetime(slider.slider("value"))+"&name="+(d.index+1),function(data){
-	        		stack_run_distance.push(config1_run_distance); // 전 화면 호출을 위해서 남겨둔 것
 	        		config3_run_distance = fnGenRunDistanceConfigLayer3( function() { 
 		        		return [ 
 		        					['x', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
-		        					['data1', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM, data[8].SUM, data[9].SUM]
+		        					['distance', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM, data[8].SUM, data[9].SUM]
 							   ];
 		        	} ());
 		        	
 		        	chart3_distance = c3.generate(config3_run_distance);
 	        	});
-	        	setInterval(function(){
+	        	
+	        	timerDistance = setInterval(function(){
 	        		$.get("http://147.47.206.13/analysis/run_distance_individual?start_time=107530&end_time="+slidetime(slider.slider("value"))+"&name="+(d.index+1),function(data){
 		        		chart3_distance.load({
 		        			columns: [
-		        				['data1', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM, data[8].SUM, data[9].SUM]
-		        			]
+			        				['distance', data[0].SUM, data[1].SUM, data[2].SUM, data[3].SUM, data[4].SUM, data[5].SUM, data[6].SUM, data[7].SUM, data[8].SUM, data[9].SUM]
+			        			]
 		        			}
 		        		);
 		        	});
-	        	},10000);
+	        	}, 10000);
 	        	
 	        }
 	    },
@@ -108,48 +125,26 @@ var fnGenRunDistanceConfigLayer3 = function (input) {
 var config1_run_distance = fnGenRunDistanceConfigLayer1([ ['teamA', 1], ['teamB', 1] ]);
 var config2_run_distance;
 var config3_run_distance;
-var stack_run_distance = [];
 var chart1_distance = c3.generate(config1_run_distance);
 var chart2_distance;
 var chart3_distance;
 var distance_Layer = 1;
 $("#backbutton-run-distance").click(function () {
-	/*
-	var prev_config = stack_run_distance.pop();
-	console.log("Run distance backbutton clicked ");
-	if(undefined != prev_config) {
-		c3.generate(prev_config);
-		config1_run_distance = prev_config;
-		//console.log("Run distance chart should change ");
-	}*/
+	
+	clearInterval(timerDistance);
+	
 	if(distance_Layer==3){
-		c3.generate(config2_run_distance);
+		chart2_distance=c3.generate(config2_run_distance);
 		distance_Layer=2;
 	}
 	else if(distance_Layer==2){
 		chart1_distance = c3.generate(config1_run_distance);
 		distance_Layer=1;
-		$.get("http://147.47.206.13/analysis/run_distance?start_time=107530&end_time=" + slidetime(slider.slider("value")), function(d) {
-			for (var i = 0; i < d.length; i++) {
-				if (d[i].TEAM == "A") {
-					chart1_distance.load({
-						columns: [
-				            ['teamA', d[i].SUM],
-				        ]
-					});
-				} else if (d[i].TEAM == "B") {
-					chart1_distance.load({
-						columns: [
-				            ['teamB', d[i].SUM],
-				        ]
-					});
-				}
-			}
-		}); 
+		playDistance();
 	}
 });
 
-$("#chart-run-distance").click(function(){
+function playDistance(){
 	$.get("http://147.47.206.13/analysis/run_distance?start_time=107530&end_time=" + slidetime(slider.slider("value")), function(d) {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].TEAM == "A") {
@@ -166,10 +161,31 @@ $("#chart-run-distance").click(function(){
 				});
 			}
 		}
-	}); 
-});
+	});
+	
+	timerDistance = setInterval(function(){
+		$.get("http://147.47.206.13/analysis/run_distance?start_time=107530&end_time=" + slidetime(slider.slider("value")), function(d) {
+			for (var i = 0; i < d.length; i++) {
+				if (d[i].TEAM == "A") {
+					chart1_distance.load({
+						columns: [
+				            ['teamA', d[i].SUM],
+				        ]
+					});
+				} else if (d[i].TEAM == "B") {
+					chart1_distance.load({
+						columns: [
+				            ['teamB', d[i].SUM],
+				        ]
+					});
+				}
+			}
+		});		
+	}, 10000);
+}
 
-// Possession
+
+// Possession : 완성
 var chart_possession = c3.generate({
     data: {
         // iris data from R
@@ -182,8 +198,8 @@ var chart_possession = c3.generate({
     },
     bindto: "#chart-possession"
 });
-$("#chart-possession").click(function () {
-	
+
+function playPossession(){
 	$.get("http://147.47.206.13/analysis/possession/team?start_time=107530&end_time=" + slidetime(slider.slider("value")), function(d) {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].TEAM == "A") {
@@ -222,8 +238,8 @@ $("#chart-possession").click(function () {
 			}
 		}); 
 	},10000);
+}
 
-});
 
 // Pass
 var fnGenPassConfigLayer1 = function (input) {	
@@ -233,13 +249,47 @@ var fnGenPassConfigLayer1 = function (input) {
 	        columns: input,
 	        type : 'bar',
 	        onclick: function (d, i) {
+	        	clearInterval(timerPass);
+	        	pass_Layer=2;
 	        	console.log(d);
-	        	stack_pass.push(config_pass);
-	        	config_pass = fnGenPassConfigLayer2(
-							[ ['Pass success rate', 30, 200, 100, 400, 150, 250] ], 
-	        			    ['Nick Gertje', 'Dennis Dotterweich', 'Niklas Waezlein', 'Wili Sommer', 'Philipp Harlass', 'Roman Hartleb']
-				);
-	        	chart_pass = c3.generate(config_pass);
+	        	if(d.name == "team A"){
+	        		$.get("http://147.47.206.13/analysis/pass/individual?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){
+	        			config2_pass = fnGenPassConfigLayer2(
+							[ ['Pass success rate', d[1].NUM, d[3].NUM, d[5].NUM, d[7].NUM, d[9].NUM, d[11].NUM, d[13].NUM, d[15].NUM] ], 
+	        			    ['Nick Gertje', 'Dennis Dotterweich', 'Niklas Waezlein', 'Wili Sommer', 'Philipp Harlass', 'Roman Hartleb', 'Erik Engelhardt', 'Sandro Schneider']
+						);
+						chart2_pass = c3.generate(config2_pass);
+	        		});
+	        		timerPass = setInterval(function(){
+	        			$.get("http://147.47.206.13/analysis/pass/individual?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){
+							chart2_pass.load({
+								columns: [
+						            ['Pass success rate', d[1].NUM, d[3].NUM, d[5].NUM, d[7].NUM, d[9].NUM, d[11].NUM, d[13].NUM, d[15].NUM],
+						        ]
+							});
+
+		        		});
+	        		},5000);
+	        	}
+	        	else if(d.name = "team B"){
+	        		$.get("http://147.47.206.13/analysis/pass/individual?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){
+	        			config2_pass = fnGenPassConfigLayer2(
+							[ ['Pass success rate', d[1].NUM, d[3].NUM, d[5].NUM, d[7].NUM, d[9].NUM, d[11].NUM, d[13].NUM, d[15].NUM] ], 
+	        			    ['Leon Krapf', 'Kevin Baer', 'Luca Ziegler', 'Ben Mueller', 'Vale Reitstetter', 'Christopher Lee', 'Leon Heinze', 'Leo Langhans']
+						);
+						chart2_pass = c3.generate(config2_pass);
+	        		});
+	        		timerPass = setInterval(function(){
+	        			$.get("http://147.47.206.13/analysis/pass/individual?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){
+							chart2_pass.load({
+								columns: [
+						            ['Pass success rate', d[1].NUM, d[3].NUM, d[5].NUM, d[7].NUM, d[9].NUM, d[11].NUM, d[13].NUM, d[15].NUM],
+						        ]
+							});
+
+		        		});
+	        		},5000);
+	        	}
 			}
 	    },
 	    bindto: "#chart-pass"
@@ -252,16 +302,17 @@ var fnGenPassConfigLayer2 = function (dats, cats) {
 	        columns: dats,
 	        type: 'bar',
 	        onclick: function (d, i) {
-	        	stack_pass.push(config_pass);
-	        	config_pass = fnGenPassToConfigLayer3( [ ['Pass success rate', 30, 200, 100, 400, 150, 250] ], 
+	        	clearInterval(timerPass);
+	        	pass_Layer=3;
+	        	config3_pass = fnGenPassToConfigLayer3( [ ['Pass success rate', 30, 200, 100, 400, 150, 250] ], 
 	        			    						   ['Nick Gertje', 'Dennis Dotterweich', 'Niklas Waezlein', 'Wili Sommer', 'Philipp Harlass', 'Roman Hartleb']
 				);
-	        	chart_pass = c3.generate(config_pass);
+	        	chart3_pass = c3.generate(config3_pass);
 	        	
-	        	config_pass = fnGenPassDistanceConfigLayer3( [ ['Pass success rate', 30, 200, 100] ], 
+	        	config4_pass = fnGenPassDistanceConfigLayer3( [ ['Pass success rate', 30, 200, 100] ], 
 	        			    								 ['Short', 'Middle', 'Long']
 	        	);
-	        	chart_pass2 = c3.generate(config_pass);
+	        	chart4_pass = c3.generate(config4_pass);
 	        }
 	    },
 	    bar: {
@@ -332,45 +383,76 @@ var fnGenPassToConfigLayer3 = function (dats, cats) {
 	};
 };
 
-var config_pass = fnGenPassConfigLayer1([ ['team A', 120], ['team B', 300] ]);
-var stack_pass = [];
-var chart_pass = c3.generate(config_pass), chart_pass2 = null;
+var config1_pass = fnGenPassConfigLayer1([ ['team A', 0], ['team B', 0] ]);
+var config2_pass;
+var config3_pass;
+var config4_pass;
+var chart1_pass = c3.generate(config1_pass);
+var chart2_pass;
+var chart3_pass;
+var chart4_pass = null;
+var pass_Layer = 1;
 $("#backbutton-pass").click(function () {
-	chart_pass.destroy();
-	if(null != chart_pass2) {
-		chart_pass2.destroy();
-		chart_pass2 = null;
+	
+	clearInterval(timerPass);
+	
+	if(pass_Layer==3){
+		c3.generate(config2_pass);
+		chart3_pass.destroy();
+		pass_Layer=2;
+		chart1_pass = c3.generate(config1_pass);
+		playPass();
 	}
-	var prev_config = stack_pass.pop();
-	console.log("Pass backbutton clicked ");
-	if(undefined != prev_config) {
-		c3.generate(prev_config);
-		config_pass = prev_config;
+	if(pass_Layer==2){
+		c3.generate(config1_pass);
+		pass_Layer=1;
+		chart1_pass = c3.generate(config1_pass);
+		playPass();
 	}
 });
-$("#chart-pass").click(function(d){
+function playPass(){
 	$.get("http://147.47.206.13/analysis/pass/team?start_time=107530&end_time=" + slidetime(slider.slider("value")), function(d) {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].TEAM == "A") {
-				chart_pass.load({
+				chart1_pass.load({
 					columns: [
 			            ['team A', d[i].NUM],
 			        ]
 				});
 			} else if (d[i].TEAM == "B") {
-				chart_pass.load({
+				chart1_pass.load({
 					columns: [
 			            ['team B', d[i].NUM],
 			        ]
 				});
 			}
 		}
-	}); 
-});
+	});
+	timerPass=setInterval(function(){
+		$.get("http://147.47.206.13/analysis/pass/team?start_time=107530&end_time=" + slidetime(slider.slider("value")), function(d) {
+			for (var i = 0; i < d.length; i++) {
+				if (d[i].TEAM == "A") {
+					chart1_pass.load({
+						columns: [
+				            ['team A', d[i].NUM],
+				        ]
+					});
+				} else if (d[i].TEAM == "B") {
+					chart1_pass.load({
+						columns: [
+				            ['team B', d[i].NUM],
+				        ]
+					});
+				}
+			}
+		});
+	},10000);
+}
 
 
 
-var heatMapRate = 5;
+var heatMapId = 0;
+var heatMapSize = 3;
 var previous = null;
 $('.list-group-item').on('click',function(e){
     /*var previous = $(this).closest(".list-group").children().children(".list-group-item");
@@ -385,10 +467,9 @@ $('.list-group-item').on('click',function(e){
     previous = $(e.target);
 });
 
-
 $('.list-group-item').on('click',function(e){
     alert($(this).text());
-    
+    /*
     $.get("http://147.47.206.13/analysis/heatmap/total?start_time=107530&end_time=" + slidetime(slider.slider("value")),function(d){	
 			var i;
 			for ( i = 0; i < 61*40; i++) { // 15855 = 105*151
@@ -410,7 +491,42 @@ $('.list-group-item').on('click',function(e){
 			}).attr("y", function(d, i) {
 				return parseInt(i / 61) * $("#heatmap").height()/40;
 			}).attr("height", $("#heatmap").height()/40).attr("width", $("#heatmap").width()/61);
-		});
+	});*/
+	loadHeatmap();
     
 });
 
+$("#heatmap-button-smaller").on('click',function(){
+	if(heatMapSize<5) heatMapSize++;
+});
+$("#heatmap-button-bigger").on('click',function(){
+	if(heatMapSize>1) heatMapSize--;
+});
+
+function loadHeatmap(){
+	heatMapX = [0, 75, 50, 37, 19, 7];
+	heatMapY = [0, 100, 75, 50, 25, 10];
+    $.get("http://147.47.206.13/analysis/heatmap/total?start_time=107530&end_time=" + slidetime(slider.slider("value"))+"&level="+heatMapSize,function(d){	
+			var i;
+			heatMapData = [];
+			for ( i = 0; i < (2*heatMapX[heatMapSize]+1)*heatMapY[heatMapSize]; i++) { // 15855 = 105*151
+				heatMapData.push(d3.rgb(0,255,0));
+			}
+
+			for ( i = 0; i < d.length; i++) {
+				if (d[i].CELL_Y != null && d[i].CELL_X != null && d[i].CELL_Y > -1) {
+					heatMapData[(2*heatMapX[heatMapSize]+1) * d[i].CELL_Y + d[i].CELL_X + heatMapX[heatMapSize]] = d3.rgb(d[i].TIME * d[i].TIME, 255 - d[i].TIME * d[i].TIME, 0);
+				}
+			}
+			
+			d3.select("#heatmap").selectAll("rect").data(heatMapData)
+			.transition()
+			.attr("fill", function(d) {
+				return d;
+			}).attr("x", function(d, i) {
+				return (i % (2*heatMapX[heatMapSize]+1)) * $("#heatmap").width()/(2*heatMapX[heatMapSize]+1);
+			}).attr("y", function(d, i) {
+				return parseInt(i / (2*heatMapX[heatMapSize]+1)) * $("#heatmap").height()/heatMapY[heatMapSize];
+			}).attr("height", $("#heatmap").height()/heatMapY[heatMapSize]).attr("width", $("#heatmap").width()/(2*heatMapX[heatMapSize]+1));
+	});
+}
