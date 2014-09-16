@@ -123,7 +123,7 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 	scaleTimeline =  d3.scale.linear().domain(PLAYTIME).range([0,$("#slider").width()]);
 
 	loadingState = d3.select("body").select("#loading").attr("width", $("#slider").width()).attr("height", 20);
-	
+	timeline = d3.select("#timeline").style("width", $("#slider").width());
 	
 
 	var index = 0;
@@ -250,7 +250,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 	}
 	
 	
-	$("#time").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+	$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 	
 	$("#score").text(scoreA + " : " + scoreB);
 	
@@ -298,7 +298,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 				}
 			}
 			
-			$("#time").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+			$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
 			$("#score").text(scoreA + " : " + scoreB);
 			ds.call(move, ++slideValue);
 		}, Math.round(100/playSpeed));
@@ -385,9 +385,7 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 		if(d.PX==null) return $(this).attr("cy");
 		return scaleY(d.PY);})
 	.attr("fill",function(d,i){
-		if(d.POSSESS == 1){ 
-			if(showPossetion) $(this).attr("stroke-width", 3).attr( "stroke","white");
-		}
+		if(d.POSSESS == 1){ $(this).attr("stroke-width", 3).attr( "stroke","white");}
 		else{
 			$(this).attr("stroke-width", 0);
 		}
