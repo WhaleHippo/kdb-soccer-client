@@ -1,136 +1,3 @@
-<!--
-<html>
-	<head>
-		<title>Game</title>
-	</head>
-	
-	<body>		
-		<div id="container" style="width:600px;">
-			<div id="header" style="background-color:#FFA500;width:600px;">
-				<div id="teamA" style="background-color:blue;width:150px;height:40px;float:left;text-align:center;">A</div>
-				
-				<div id="header_center" style="width:300px;height:40px;float:left;text-align:center;"><text id="time">0 : 0</text>
-					<br />
-					<text id = "score">0 : 0</text>
-				</div>
-				
-				<div id="teamB" style="background-color:red;width:150px;height:40px;float:left;text-align:center;">B</div>
-			</div>
-			<div id="content1" style="background-color:#EEEEEE;height:330px;float:left;width:450px;" >
-				<svg id = "main" style="background-color:green;height:330px;float:left;width:450px;">
-					
-					<circle id="field0" fill="green" stroke-width="3" stroke="white"></circle>
-					<rect id="field1" fill="white"></rect>
-					<rect id="field2" fill="white"></rect>
-					<rect id="field3" fill="white"></rect>
-					<rect id="field4" fill="white"></rect>
-					<rect id="field5" fill="white"></rect>
-					
-					
-					<rect class="test" fill="blue"></rect>
-					
-					<polygon class="test" fill="blue"></polygon>
-					<polygon class="test" fill="blue"></polygon>
-					<polygon class="test" fill="blue"></polygon>
-					<polygon class="test" fill="blue"></polygon>
-					<polygon class="test" fill="blue"></polygon>
-					<polygon class="test" fill="blue"></polygon>
-					<polygon class="test" fill="blue"></polygon>
-					
-					<rect class="test" fill="red"></rect>
-					<polygon class="test" fill="red"></polygon>
-					<polygon class="test" fill="red"></polygon>
-					<polygon class="test" fill="red"></polygon>
-					<polygon class="test" fill="red"></polygon>
-					<polygon class="test" fill="red"></polygon>
-					<polygon class="test" fill="red"></polygon>
-					<polygon class="test" fill="red"></polygon>
-					
-					<circle class="test" fill="black"></circle>
-					<circle class="test" fill="black"></circle>
-					<circle class="test" fill="black"></circle>
-					<circle class="test" fill="black"></circle>
-					 
-					<polygon class="test" fill="yellow"></polygon>
-					
-					<text>1</text><text>2</text><text>3</text><text>4</text><text>5</text><text>6</text><text>7</text><text>8</text>
-					<text>9</text><text>10</text><text>11</text><text>12</text><text>13</text><text>14</text><text>15</text><text>16</text>
-					<text>17</text><text>18</text><text>19</text><text>20</text>
-					<text>21</text>
-	
-				</svg>
-			</div>
-			<div id="menu" style="background-color:#FFD700;height:330px;width:150px;float:left;">
-				<b>menu</b>
-				<br>
-				<input type="checkbox" id="check1">possetion
-				<br>
-				<input type="checkbox" id="check2">distance
-				<br>
-				<input type="checkbox" id="check3">pass
-				<br>
-				<input type="checkbox" id="check4" checked>team A
-				<br>
-				<input type="checkbox" id="check5" checked>team B
-				<br>
-				<input type="checkbox" id="check6">heatmap
-				<p id="playspeed">playspeed : 100%</p>
-				<input type="button" id="decrease" value="decrease"></input>
-				<br>
-				<input type="button" id="playbutton" value="play"></input>
-				<br>
-				<input type="button" id="increase" value="increase"></input>
-			</div>
-			
-			<div id="content2" style="clear:both;">
-				
-				<div id="slider" style="width: 600;"></div>
-				<svg id = "loading" height = "10">
-					<rect fill="blue" width = "10" height = "10" x="0" y="0"></rect>
-				</svg>
-				<svg id = "timeline" style="width: 600; height : 20"></svg>
-				<div style="background-color:#FFD700;height:220px;width:240px;float:left;text-align:center;">
-					distance
-					<svg id = "distance" width = "240" height = "200">	
-						<rect></rect><rect></rect><rect></rect><rect></rect><rect></rect><rect></rect><rect></rect><rect></rect>
-						<rect></rect><rect></rect><rect></rect><rect></rect><rect></rect><rect></rect><rect></rect><rect></rect>
-						
-						<text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text>
-						<text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text><text class = "tag"></text>
-					</svg>
-				</div>
-				<div style="background-color:#FFA500;height:220px;width:160px;float:left;text-align:center;">
-					possession
-					<svg id = "possession" width = "160" height = "200">	
-					<rect fill="blue" id="A"></rect><rect fill="red" id="B"></rect>
-					<text x="40" y = "200">teamA</text><text x="80" y = "200">teamB</text>
-					</svg>
-				</div>
-				<div style="background-color:#FFD700;height:220px;width:200px;float:left;text-align:center;">
-					pass
-					<svg id = "pass" width = "200" height = "200">	
-					<rect fill="blue"></rect><rect fill="blue"></rect><rect fill="red"></rect><rect fill="red"></rect>
-					<text x="40" y = "200">Pass</text><text x="70" y = "200">Miss</text><text x="100" y = "200">Pass</text><text x="130" y = "200">Miss</text>
-					</svg>
-				</div>
-				
-				<div style="background-color:green;height:350px;width:600px;text-align:center;">
-					heatmap
-					<svg id = "heatmap" style="background-color:green" width = "600" height = "350"></svg>
-				</div>
-			</div>
-		</div>
-		
-		<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
-		<script src="http://d3js.org/d3.v3.min.js"></script>
-		<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
-		<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
-		<script src = "dhk.js"></script>
-	</body>
-</html> -->
-
-
-<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -139,7 +6,13 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
-
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+    <!-- Bootstrap core CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Optional theme -->
+    <!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"-->
+    <link href="c3-0.3.0/c3.css" rel="stylesheet" type="text/css">
+    
     <title>Soccer Data Visualization</title>
 
 
@@ -158,197 +31,185 @@
   </head>
 
   <body>
-
     <div class="container">
-
       <div class="masthead">
-        <h3 class="text-muted">Soccer Data Visualization</h3>
+        <h3>Soccer Data Visualization</h3>
+        <p>by 권대희, 이경미</p>
       </div>
-      
       <div id="screen">
-      
-	    <div class="score-time">
-	      	<p id="playtime">time!</p>
-	      	<p id="score">0 : 0</p>
-		</div>
-      
-      	<svg id = "main">
-			<circle id="field0" fill="green" stroke-width="3" stroke="white"></circle>
-			<rect id="field1" fill="white"></rect>
-			<rect id="field2" fill="white"></rect>
-			<rect id="field3" fill="white"></rect>
-			<rect id="field4" fill="white"></rect>
-			<rect id="field5" fill="white"></rect>
-			
-			<rect class="test" fill="blue"></rect>
-			
-			<polygon class="test" fill="blue"></polygon>
-			<polygon class="test" fill="blue"></polygon>
-			<polygon class="test" fill="blue"></polygon>
-			<polygon class="test" fill="blue"></polygon>
-			<polygon class="test" fill="blue"></polygon>
-			<polygon class="test" fill="blue"></polygon>
-			<polygon class="test" fill="blue"></polygon>
-			
-			<rect class="test" fill="red"></rect>
-			<polygon class="test" fill="red"></polygon>
-			<polygon class="test" fill="red"></polygon>
-			<polygon class="test" fill="red"></polygon>
-			<polygon class="test" fill="red"></polygon>
-			<polygon class="test" fill="red"></polygon>
-			<polygon class="test" fill="red"></polygon>
-			<polygon class="test" fill="red"></polygon>
-			
-			<circle class="test" fill="black"></circle>
-			<circle class="test" fill="black"></circle>
-			<circle class="test" fill="black"></circle>
-			<circle class="test" fill="black"></circle>
-			 
-			<polygon class="test" fill="yellow"></polygon>
-			
-			<text>1</text> <text>2</text> <text>3</text> <text>4</text> <text>5</text> <text>6</text> <text>7</text>
-			<text>8</text> <text>9</text> <text>10</text> <text>11</text> <text>12</text> <text>13</text> <text>14</text>
-			<text>15</text> <text>16</text> <text>17</text> <text>18</text> <text>19</text> <text>20</text> <text>21</text>
-		</svg>
-		
-	  	<div id="slider"></div>
-	  	<svg id = "timeline" style="width: 600; height : 20"></svg>
-	  	
-		<div id="play-buttons">
-			<!--<input type="button" id="playbutton" value="play"></input> -->
-		  	<button type="button" id="backword">
-				<span class="glyphicon glyphicon-step-backward"></span>
-			</button>
-			<button type="button" id="playbutton">
-				<span class="glyphicon glyphicon-play"></span>
-			</button>
-		  	<button type="button" id="forward">
-				<span class="glyphicon glyphicon-step-forward"></span>
-			</button>
-		  	<button type="button" id="increase">
-				<span class="glyphicon glyphicon-plus"></span>
-			</button>
-			<button type="button" id="decrease">
-				<span class="glyphicon glyphicon-minus"></span>
-			</button>
-			<p id="playspeed">100%</p>
-		</div>
-		
-		<div id="statistics">
-		  <ul class="nav nav-tabs" id="statistics-tab" role="tablist">
-		      <li class="active"><a href="#stat-run-distance" role="tab" data-toggle="tab">Run distance</a></li>
-		      <li><a href="#stat-possession" role="tab" data-toggle="tab">Possession</a></li>
-		      <li><a href="#stat-pass" role="tab" data-toggle="tab">Pass</a></li>
-		      <li><a href="#stat-heat-map" role="tab" data-toggle="tab">Heat map</a></li>
-		  </ul>
-		  
-		  <div class="tab-content" id="selected-statistics">	
-		  	<!-- Run distance tab -->
-		  	<div class="tab-pane fade in active" id="stat-run-distance">
-		  		<p>Run distance</p>
-		  		<div id="chart-run-distance"></div>
-		  		
-			  	<button type="button" id="backbutton-run-distance">
-					<span class="glyphicon glyphicon-arrow-left"></span>
-				</button>
-		  	</div>
-		  	
-		  	<!-- Possession tab -->
-		  	<div class="tab-pane fade" id="stat-possession">
-		  		<p>Possession</p>
-		  		<div id="chart-possession"></div>
-		  		<!-- 
-			  	<button type="button" id="backbutton-possession">
-					<span class="glyphicon glyphicon-arrow-left"></span>
-				</button> -->
-		  	</div>
-		  	
-		  	<!-- Pass tab -->
-		  	<div class="tab-pane fade" id="stat-pass">	
-		  		<p>Pass</p>
-		  		<div id="chart-pass"></div>
-		  		<div id="chart-pass2"></div>
-		  		
-			  	<button type="button" id="backbutton-pass">
-					<span class="glyphicon glyphicon-arrow-left"></span>
-				</button>
-		  	</div>
-		  	
-		  	<!-- Heat-map tab -->
-		  	<div class="tab-pane fade" id="stat-heat-map">
-		  		<!-- Team, Player List -->
-		  		<div class="panel-group list-group">
-		  			<!-- All -->
-		  			<div class="panel panel-default">
-				        <a class="list-group-item" data-toggle="collapse">
-				            All
-				        </a>
-					</div>
-					
-					<!-- Team A -->
-					<div class="panel panel-default">
-				        <a class="list-group-item" data-toggle="collapse" href="#collapseTC001A">
-				            <!-- <span class="badge">4</span> -->
-				            Team A
-				        </a>
-						<div class="panel-collapse collapse" id="collapseTC001A">
-							<div class="panel-body">
-								<a class="list-group-item">Nictjek Ger</a>
-								<a class="list-group-item">Dennis Dotterweich</a>
-								<a class="list-group-item">Niklas Waezlein</a>
-								<a class="list-group-item">Wili Sommer</a>
-								<a class="list-group-item">Philipp Harlass</a>
-								<a class="list-group-item">Roman Hartleb</a>
-								<a class="list-group-item">Erik Engelhardt</a>
-							</div>
-						</div>
-					</div>
-				    
-					<!-- Team B -->
-					<div class="panel panel-default">
-				        <a class="list-group-item" data-toggle="collapse" href="#collapseTC002A">
-				            <!-- <span class="badge">2</span> -->
-				            Team B
-				        </a>
-						<div class="panel-collapse collapse" id="collapseTC002A">
-							<div class="panel-body">
-								<a class="list-group-item">Leon Krapf</a>
-								<a class="list-group-item">Kevin Baer</a>
-								<a class="list-group-item">Luca Ziegler</a>
-								<a class="list-group-item">Ben Mueller</a>
-								<a class="list-group-item">Vale Reitstetter</a>
-								<a class="list-group-item">Chrisotpher Lee</a>
-								<a class="list-group-item">Leon Heinze</a>
-							</div>
-						</div>
-					</div>
-				</div>
-		  		<!-- Panel group  -->
-		  		
-		  		<!-- <svg id = "heatmap" style="background-color:green" position = "absolute" right = "0" width = "600" height = "350"></svg> -->
-		  		<div id="heatmap-panel">
-		  			<svg id = "heatmap" ></svg>
-					<button type="button" id="heatmap-button-smaller">
-						<span class="glyphicon glyphicon-minus"></span>
-					</button>
-				  	<button type="button" id="heatmap-button-bigger">
-						<span class="glyphicon glyphicon-plus"></span>
-					</button>
-				</div>
-		  	</div>
-		  </div>
-		  <!-- tab-content end -->
-	  	</div>
-	  	<!-- Statistics end -->
-		
-	  </div>
-	  <!-- Screen end -->
-
-	  
+        <div class="score-time">
+          <h2><span class="home">Team A</span> <span id="score">0 : 0</span> <span class="away">Team B</span></h2>
+          <span id="playtime">00:00</span>
+        </div>
+        <svg id = "main">
+          <circle id="field0" fill="#90B23A" stroke-width="3" stroke="white"></circle>
+          <rect id="field1" fill="white"></rect>
+          <rect id="field2" fill="white"></rect>
+          <rect id="field3" fill="white"></rect>
+          <rect id="field4" fill="white"></rect>
+          <rect id="field5" fill="white"></rect>
+          
+          <rect class="test" fill="#1F77B4"></rect>
+          
+          <polygon class="test" fill="#1F77B4"></polygon>
+          <polygon class="test" fill="#1F77B4"></polygon>
+          <polygon class="test" fill="#1F77B4"></polygon>
+          <polygon class="test" fill="#1F77B4"></polygon>
+          <polygon class="test" fill="#1F77B4"></polygon>
+          <polygon class="test" fill="#1F77B4"></polygon>
+          <polygon class="test" fill="#1F77B4"></polygon>
+          
+          <rect class="test" fill="#FF7F0E"></rect>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          <polygon class="test" fill="#FF7F0E"></polygon>
+          
+          <circle class="test" fill="black"></circle>
+          <circle class="test" fill="black"></circle>
+          <circle class="test" fill="black"></circle>
+          <circle class="test" fill="black"></circle>
+           
+          <polygon class="test" fill="yellow"></polygon>
+          
+          <text>1</text> <text>2</text> <text>3</text> <text>4</text> <text>5</text> <text>6</text> <text>7</text>
+          <text>8</text> <text>9</text> <text>10</text> <text>11</text> <text>12</text> <text>13</text> <text>14</text>
+          <text>15</text> <text>16</text> <text>17</text> <text>18</text> <text>19</text> <text>20</text> <text>21</text>
+        </svg>
+        <div id="slider"></div>
+        <svg id ="timeline"></svg>
+        <div id="play-buttons">
+          <!--<input type="button" id="playbutton" value="play"></input> -->
+          <!--button type="button" id="backword">
+            <span class="glyphicon glyphicon-step-backward"></span>
+          </button-->
+          <span>
+          <button type="button" class="btn btn-default btn-sm" id="playbutton">
+            <span class="glyphicon glyphicon-play"></span>
+          </button>
+          <!--button type="button" id="forward">
+            <span class="glyphicon glyphicon-step-forward"></span>
+          </button-->
+          <button type="button" class="btn btn-default btn-sm" id="increase">
+            <span class="glyphicon glyphicon-plus"></span>
+          </button>
+          <button type="button" class="btn btn-default btn-sm" id="decrease">
+            <span class="glyphicon glyphicon-minus"></span>
+          </button>
+          <span>play speed: </span><span id="playspeed">100%</span>
+        </div>
+        <br>
+        <div id="statistics">
+          <ul class="nav nav-tabs" id="statistics-tab" role="tablist">
+            <li class="active"><a href="#stat-run-distance" role="tab" data-toggle="tab">Run distance</a></li>
+            <li><a href="#stat-possession" role="tab" data-toggle="tab">Possession</a></li>
+            <li><a href="#stat-pass" role="tab" data-toggle="tab">Pass</a></li>
+            <li><a href="#stat-heat-map" role="tab" data-toggle="tab">Heat map</a></li>
+          </ul>
+        
+          <div class="tab-content" id="selected-statistics">  
+            <!-- Run distance tab -->
+            <div class="tab-pane fade in active" id="stat-run-distance">
+              <button type="button" class="btn btn-default btn-sm" id="backbutton-run-distance">
+                <span class="glyphicon glyphicon-arrow-left"></span>
+              </button>
+              <div id="chart-run-distance"></div>
+            </div>
+            
+            <!-- Possession tab -->
+            <div class="tab-pane fade" id="stat-possession">
+              <div id="chart-possession"></div>
+              <!-- 
+              <button type="button" id="backbutton-possession">
+              <span class="glyphicon glyphicon-arrow-left"></span>
+            </button> -->
+            </div>
+            
+            <!-- Pass tab -->
+            <div class="tab-pane fade" id="stat-pass">  
+              <button type="button" class="btn btn-default btn-sm" id="backbutton-pass">
+                <span class="glyphicon glyphicon-arrow-left"></span>
+              </button>
+              <div id="chart-pass"></div>
+              <div id="chart-pass2"></div>
+            </div>
+            
+            <!-- Heat-map tab -->
+            <div class="tab-pane fade" id="stat-heat-map">
+              <!-- Team, Player List -->
+              <div class="panel-group list-group">
+                <!-- All -->
+                <div class="panel panel-default">
+                  <a class="list-group-item" data-toggle="collapse">
+                        All
+                  </a>
+                </div>
+              
+                <!-- Team A -->
+                <div class="panel panel-default">
+                  <a class="list-group-item" data-toggle="collapse" href="#collapseTC001A">
+                      <!-- <span class="badge">4</span> -->
+                      Team A
+                  </a>
+                  <div class="panel-collapse collapse" id="collapseTC001A">
+                    <div class="panel-body">
+                      <a class="list-group-item">Nictjek Ger</a>
+                      <a class="list-group-item">Dennis Dotterweich</a>
+                      <a class="list-group-item">Niklas Waezlein</a>
+                      <a class="list-group-item">Wili Sommer</a>
+                      <a class="list-group-item">Philipp Harlass</a>
+                      <a class="list-group-item">Roman Hartleb</a>
+                      <a class="list-group-item">Erik Engelhardt</a>
+                    </div>
+                  </div>
+                </div>
+                  
+                <!-- Team B -->
+                <div class="panel panel-default">
+                  <a class="list-group-item" data-toggle="collapse" href="#collapseTC002A">
+                      <!-- <span class="badge">2</span> -->
+                      Team B
+                  </a>
+                  <div class="panel-collapse collapse" id="collapseTC002A">
+                    <div class="panel-body">
+                      <a class="list-group-item">Leon Krapf</a>
+                      <a class="list-group-item">Kevin Baer</a>
+                      <a class="list-group-item">Luca Ziegler</a>
+                      <a class="list-group-item">Ben Mueller</a>
+                      <a class="list-group-item">Vale Reitstetter</a>
+                      <a class="list-group-item">Chrisotpher Lee</a>
+                      <a class="list-group-item">Leon Heinze</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Panel group  -->
+              
+              <!-- <svg id = "heatmap" style="background-color:#6E9421" position = "absolute" right = "0" width = "600" height = "350"></svg> -->
+              <div id="heatmap-panel">
+                <svg id ="heatmap"></svg>
+                <button type="button" class="btn btn-default btn-sm" id="heatmap-button-smaller">
+                  <span class="glyphicon glyphicon-minus"></span>
+                </button>
+                <button type="button" class="btn btn-default btn-sm" id="heatmap-button-bigger">
+                  <span class="glyphicon glyphicon-plus"></span>
+                </button>
+              </div>
+            </div>
+            <!-- stat-heat-map end -->
+          </div>
+          <!-- tab-content end -->
+        </div>
+        <!-- Statistics end -->
+      </div>
+      <!-- Screen end -->
 
       <!-- Site footer -->
       <div class="footer">
-        <p>&copy; Company 2014</p>
+        <p>PIDL</p>
       </div>
 
     </div> <!-- /container -->
@@ -356,24 +217,18 @@
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
-	
-	<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
-	<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
-	<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
-	
-    <!-- Bootstrap core CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    
+    
+    <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+  
     <!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-	
-	<link href="c3-0.3.0/c3.css" rel="stylesheet" type="text/css">
-	<script src="http://d3js.org/d3.v3.min.js"></script>
-	<script src="c3-0.3.0/c3.min.js"></script>
-	
-    <!-- Soccer data JavaScript -->
-	<script src = "dhk.js"></script>
-	<script src = "ksl.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="c3-0.3.0/c3.min.js"></script>
+    
+      <!-- Soccer data JavaScript -->
+    <script src = "dhk.js"></script>
+    <script src = "ksl.js"></script>
   </body>
 </html>

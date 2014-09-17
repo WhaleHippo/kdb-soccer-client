@@ -148,9 +148,9 @@ $.get("http://147.47.206.13/meta/time", function(d) { // 시간에 대한 메타
 		goalTime = d;
 		timeline.selectAll("circle").data(goalTime).enter().append("circle").attr("fill", function(d) {
 			if (d.TEAM == "A")
-				return "blue";
+				return "#1F77B4";
 			else
-				return "red";
+				return "#FF7F0E";
 		}).attr("r", 3).attr("cx", function(d) {
 			return scaleTimeline(timeslide(d.FRAME_TS));
 		}).attr("cy", 5).on("click", function() {
@@ -250,7 +250,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 	}
 	
 	
-	$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+	$("#playtime").text(parseInt(slideValue/600) + ":" + parseInt((slideValue%600)/10));
 	
 	$("#score").text(scoreA + " : " + scoreB);
 	
@@ -268,8 +268,8 @@ function start(slideValue) { // 재생을 시작하는 함수
 			if(d.POSSESS == 1) return "white";
 			if(d.PX==null) return "transparent";
 			else{
-				if(i<8) return "blue";
-				else if(i<16) return "red";
+				if(i<8) return "#1F77B4";
+				else if(i<16) return "#FF7F0E";
 				else if (i<20) return "black";
 				else return "yellow";
 			}
@@ -285,7 +285,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 			if(d.PX==null) return $(this).attr("y");
 			else return scaleY(d.PY);
 		}).text(function(d,i){
-			if(d.PX==null) return "null";
+			if(d.PX==null) return "";
 			else return i+1;
 		});
 		
@@ -298,7 +298,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 				}
 			}
 			
-			$("#playtime").text(parseInt(slideValue/600) + " : " + parseInt((slideValue%600)/10));
+			$("#playtime").text(parseInt(slideValue/600) + ":" + parseInt((slideValue%600)/10));
 			$("#score").text(scoreA + " : " + scoreB);
 			ds.call(move, ++slideValue);
 		}, Math.round(100/playSpeed));
@@ -319,8 +319,8 @@ function start(slideValue) { // 재생을 시작하는 함수
 				
 				if(d.PX==null) return "transparent";
 				else{
-					if(i<8) return "blue";
-					else if(i<16) return "red";
+					if(i<8) return "#1F77B4";
+					else if(i<16) return "#FF7F0E";
 					else if (i<20) return "black";
 					else return "yellow";
 				}
@@ -336,7 +336,7 @@ function start(slideValue) { // 재생을 시작하는 함수
 				if(d.PX==null) return $(this).attr("y");
 				else return scaleY(d.PY);
 			}).text(function(d,i){
-				if(d.PX==null) return "null";
+				if(d.PX==null) return "";
 				else return i+1;
 			});
 					
@@ -392,11 +392,11 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 		if(d.PX==null) return "transparent";
 		else{
 			if(i<8){
-				if(showTeamA)	return "blue";
+				if(showTeamA)	return "#1F77B4";
 				else return "transparent";
 			}
 			else if(i<16){
-				if(showTeamB)	return "red";
+				if(showTeamB)	return "#FF7F0E";
 				else return "transparent";
 			}
 			else if (i<20) return "black";
@@ -414,7 +414,7 @@ function move(selection, slideValue) { // 선수,공과 데이터를 연동하�
 		if(d.PX==null) return $(this).attr("y");
 		else return scaleY(d.PY);
 	}).text(function(d,i){
-		if(d.PX==null) return "null";
+		if(d.PX==null) return "";
 		else return i+1;
 	});
 	slider.slider("value", slideValue);
@@ -493,8 +493,8 @@ $("#check2").click(function() {
 	else {
 		$.get("http://147.47.206.13/analysis/run_distance?time="+slidetime(slider.slider("value")), function(d) {
 			d3.select("#distance").selectAll("rect").data(d).attr("y",function(d){return 200-d.SUM*20;}).attr("x",function(d,i){return i*15;}).attr("width",15).attr("height",function(d){return d.SUM*20;}).attr("fill",function(d,i){
-				if(i<8) return "blue";
-				else return "red";
+				if(i<8) return "#1F77B4";
+				else return "#FF7F0E";
 			});
 			d3.select("#distance").selectAll("text").data(d).attr("y",200).attr("x",function(d,i){$(this).text(i+1); return i*15;});
 		});
@@ -599,13 +599,13 @@ function resizefiled(){ // 경기장 표현
 	 svg.select("#field2").attr("x",20).attr("y",20)
 		.attr("height",5).attr("width",width -40);
 		
-	 svg.select("#field3").attr("x",width-20).attr("y",20)
+	 svg.select("#field3").attr("x",width-20-2).attr("y",20)
 		.attr("height",height - 35).attr("width",5);
 	 
 	 svg.select("#field4").attr("x",20).attr("y",height-20)
 		.attr("height",5).attr("width",width -40);
 		
-	 svg.select("#field5").attr("x",width*0.5).attr("y",20)
+	 svg.select("#field5").attr("x",width*0.5-2).attr("y",20)
 		.attr("height",height -40).attr("width",5);
 	
 	 svg.select("#field0").attr("cx",width*0.5).attr("cy",height*0.5).attr("r",width*0.09);

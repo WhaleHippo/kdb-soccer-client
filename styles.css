@@ -1,95 +1,110 @@
 body {
   padding-top: 20px;
+  padding-bottom: 20px;
+  background-color: #325605;
 }
 
 .container {
-	width: 900px;
+  background-color: white;
 }
 
 .score-time {
-	height: 70px;
-	
-	border-width: thin;
-	border-style: solid;
-	border-color: gray;
+  margin: 0px auto;
+  padding: 6px 0px 8px;
+  width: 900px;
+  text-align: center;
 }
 
+#score{
+  padding: 0px 100px;
+  color: #000;
+  vertical-align: middle;
+}
+
+.home {
+  color: #1F77B4; 
+}
+
+.away {
+  color: #FF7F0E;
+}
+
+
 #screen {
-	width: 900px;
-	height: auto;
-	
-	margin-left: auto;
-	margin-right: auto;
-	
-	margin-top: 30px;
-	margin-bottom: 10px;
-	
-	border-width: thin;
-	border-style: solid;
-	border-color: gray;
+  margin-right: auto;
+  margin-bottom: 10px;
+  
+  margin-left: auto;
+  padding-right: 9px;
+  
+  padding-left: 9px;
+  width: 920px;
+  height: auto;
 }
 
 #main {
-	width: 900px;
-	height: 660px;
-	background-color: green;
-	
-	border-width: thin;
-	border-style: solid;
-	border-color: gray;
+  width: 900px;
+  height: 660px;
+  
+  border-width: thin;
+  border-style: solid;
+  border-color: gray;
+  background-color: #90B23A;
 }
 
 #slider {
-	border-width: thin;
-	border-style: solid;
-	border-color: gray;
+  border-width: thin;
+  border-style: solid;
+  border-color: gray;
+}
+
+#timeline {
+  height : 20px;
 }
 
 .play-buttons {
-	height: 50px;
-	border-width: thin;
-	border-style: solid;
-	border-color: gray;
+  height: 50px;
+  border-width: thin;
+  border-style: solid;
+  border-color: gray;
 }
 
 #selected-statistics {
-	height: 400px;
-	margin-left: auto;
-	margin-right: auto;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 #stat-pass {
 }
 
 #heatmap-panel {
-	float: left;
-	width = 700px;
+
 }
 
 .panel-group {
-	float: left;
-	width: 200px;
-	height: 400px;
-    overflow-y:scroll; 
+  float: left;
+    overflow-y:scroll;
+  width: 200px;
+  height: 400px; 
 }
 
 #heatmap {
-	background-color:green;
-	width = 600px;
-	height = 350px;
+  width: 600px;
+  height: 350px;
+  background-color:green;
 }
 
 .footer {
+  margin-top: 40px;
   padding-top: 40px;
   padding-bottom: 40px;
-  margin-top: 40px;
   border-top: 1px solid #eee;
 }
 
 /* Main marketing message and sign up button */
 .jumbotron {
-  text-align: center;
   background-color: transparent;
+  text-align: center;
 }
 .jumbotron .btn {
   padding: 14px 24px;
@@ -99,26 +114,26 @@ body {
 /* Customize the nav-justified links to be fill the entire space of the .navbar */
 
 .nav-tabs-justified {
-  background-color: #eee;
   border: 1px solid #ccc;
   border-radius: 5px;
+  background-color: #eee;
 }
 .nav-tabs-justified > li > a {
+  margin-bottom: 0;
   padding-top: 15px;
   padding-bottom: 15px;
-  margin-bottom: 0;
-  font-weight: bold;
-  color: #777;
-  text-align: center;
+  border-bottom: 1px solid #d5d5d5;
   background-color: #e5e5e5; /* Old browsers */
   background-image: -webkit-gradient(linear, left top, left bottom, from(#f5f5f5), to(#e5e5e5));
   background-image: -webkit-linear-gradient(top, #f5f5f5 0%, #e5e5e5 100%);
   background-image:      -o-linear-gradient(top, #f5f5f5 0%, #e5e5e5 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, from(top), color-stop(0%, #f5f5f5), to(#e5e5e5));
   background-image:         linear-gradient(top, #f5f5f5 0%, #e5e5e5 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f5f5', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
   background-repeat: repeat-x; /* Repeat the gradient */
-  border-bottom: 1px solid #d5d5d5;
+  color: #777;
+  text-align: center;
+  font-weight: bold;
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f5f5', endColorstr='#e5e5e5',GradientType=0 ); /* IE6-9 */
 }
 .nav-justified > .active > a,
 .nav-justified > .active > a:hover,
